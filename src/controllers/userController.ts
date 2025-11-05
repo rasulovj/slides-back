@@ -47,3 +47,24 @@ export const updateUser = asyncHandler(
     });
   }
 );
+
+export const getMe = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    res.status(401);
+    throw new Error("Unauthorized");
+  }
+
+  const user = await User.findById(userId).select("-password");
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  res.status(200).json({
+    success: true,
+    user,
+  });
+});

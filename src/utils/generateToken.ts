@@ -19,7 +19,7 @@ const generateAccessToken = (payload: TokenPayload): string => {
   }
 
   return jwt.sign(payload, process.env.JWT_ACCESS_SECRET, {
-    expiresIn: "15m", // short-lived
+    expiresIn: "15m",
   });
 };
 
@@ -31,7 +31,7 @@ const generateRefreshToken = (payload: TokenPayload): string => {
   }
 
   return jwt.sign(payload, process.env.JWT_REFRESH_SECRET, {
-    expiresIn: "7d", // long-lived
+    expiresIn: "7d",
   });
 };
 

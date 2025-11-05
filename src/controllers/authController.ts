@@ -69,7 +69,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     });
 
     user.refreshTokens.push(refreshToken);
-    await user.save();
+    if (user.refreshTokens.length > 3) {
+      user.refreshTokens = user.refreshTokens.slice(-3);
+    }
 
     res.status(200).json({
       success: true,
