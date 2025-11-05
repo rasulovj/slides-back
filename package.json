@@ -1,0 +1,36 @@
+{
+  "name": "slideapi",
+  "version": "1.0.0",
+  "description": "An api for making slides",
+  "license": "ISC",
+  "author": "Jamshidbek Rasulov",
+  "main": "index.ts",
+  "scripts": {
+    "dev": "ts-node src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.ts",
+    "seed:themes": "ts-node src/seeds/seedThemes.ts"
+  },
+  "dependencies": {
+    "@google/genai": "^1.28.0",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.19.2",
+    "morgan": "^1.10.1",
+    "nodemon": "^3.1.10",
+    "openai": "^6.8.0",
+    "pptxgenjs": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^24.10.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
