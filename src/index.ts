@@ -33,7 +33,6 @@ app.use(express.json());
 app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ Ensure uploads directory exists before serving it
 const uploadsPath = path.join(__dirname, "../uploads");
 fs.mkdir(uploadsPath, { recursive: true });
 app.use("/uploads", express.static(uploadsPath));
