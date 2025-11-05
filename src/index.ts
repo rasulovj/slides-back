@@ -8,6 +8,7 @@ import connectDb from "./config/db";
 import authRoutes from "./routes/authRoutes";
 import themeRoutes from "./routes/themeRouter";
 import presentationRoutes from "./routes/presentationRoute";
+import userRoute from "./routes/userRoute";
 import Theme from "./models/theme";
 import { seedThemes } from "./seeds/seedThemes";
 
@@ -55,6 +56,7 @@ const startServer = async () => {
     app.use("/api/auth", authRoutes);
     app.use("/api/themes", themeRoutes);
     app.use("/api/presentations", presentationRoutes);
+    app.use("/api/users", userRoute);
 
     app.get("/health", (req, res) => {
       res.status(200).json({ status: "OK", message: "Server is running" });
