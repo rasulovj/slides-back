@@ -2,12 +2,13 @@
 import { Response } from "express";
 import { AuthRequest } from "../types";
 import PresentationDraft, { ISlide } from "../models/presentationDraft";
-import User from "../models/user";
 import Theme from "../models/theme";
 import { AIService } from "../services/aiService";
 import { v4 as uuidv4 } from "uuid";
+import { ThumbnailGenerator } from "../utils/thumbnailGenerator";
 
 const aiService = new AIService();
+const thumbnailGenerator = new ThumbnailGenerator();
 
 // Create new draft from AI generation
 export const createDraft = async (
@@ -58,6 +59,19 @@ export const createDraft = async (
       lastEditedAt: new Date(),
     });
 
+    if (slides.length > 0) {
+      const draftId = String(draft._id);
+      thumbnailGenerator
+        .generateThumbnail(slides[0], theme, draftId)
+        .then(async (thumbnailUrl) => {
+          draft.thumbnail = thumbnailUrl;
+          await draft.save();
+        })
+        .catch((error) => {
+          console.error("Thumbnail generation failed:", error);
+        });
+    }
+
     res.status(201).json({
       success: true,
       draft: {
@@ -65,6 +79,7 @@ export const createDraft = async (
         title: draft.title,
         slideCount: draft.slides.length,
         themeSlug: draft.themeSlug,
+        thumbnail: draft.thumbnail,
         createdAt: draft.createdAt,
       },
     });
@@ -94,7 +109,7 @@ export const getUserDrafts = async (
       .sort({ lastEditedAt: -1 })
       .limit(50)
       .select(
-        "title topic themeSlug slides.length status lastEditedAt createdAt"
+        "title topic themeSlug slides.length status lastEditedAt createdAt thumbnail"
       );
 
     res.status(200).json({
@@ -107,6 +122,7 @@ export const getUserDrafts = async (
         themeSlug: draft.themeSlug,
         slideCount: draft.slides.length,
         status: draft.status,
+        thumbnail: draft.thumbnail || null,
         lastEditedAt: draft.lastEditedAt,
         createdAt: draft.createdAt,
       })),

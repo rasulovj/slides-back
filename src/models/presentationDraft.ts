@@ -37,6 +37,7 @@ export interface IPresentationDraft extends Document {
   language: string;
   themeSlug: string;
   slides: ISlide[];
+  thumbnail?: string;
   status: "draft" | "generating" | "completed";
   lastEditedAt: Date;
   createdAt: Date;
@@ -114,6 +115,10 @@ const presentationDraftSchema = new Schema<IPresentationDraft>(
       type: String,
       enum: ["draft", "generating", "completed"],
       default: "draft",
+    },
+    thumbnail: {
+      type: String,
+      default: null,
     },
     lastEditedAt: {
       type: Date,
