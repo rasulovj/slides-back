@@ -6,7 +6,7 @@ import { AuthRequest } from "../types";
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const { name, email, password } = req.body;
 
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -18,6 +18,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const user = await User.create({
+      name,
       email,
       password: hashedPassword,
     });
@@ -35,6 +36,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       success: true,
       user: {
         id: user._id,
+        name: user.name,
         email: user.email,
         isPremium: user.isPremium,
       },
@@ -42,7 +44,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       refreshToken,
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server erroreer", error });
   }
 };
 

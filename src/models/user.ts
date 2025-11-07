@@ -55,7 +55,7 @@ const userSchema = new Schema<IUser>(
     avatar: {
       type: String,
       default:
-        "https://cdn.vectorstock.com/i/2000v/92/16/default-profile-picture-avatar-user-icon-vector-46389216.avif",
+        "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg",
     },
     refreshTokens: {
       type: [String],

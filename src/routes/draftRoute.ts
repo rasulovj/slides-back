@@ -1,0 +1,34 @@
+// src/routes/draftRoutes.ts
+import express from "express";
+import {
+  createDraft,
+  getUserDrafts,
+  getDraftById,
+  updateDraft,
+  updateSlide,
+  addSlide,
+  deleteSlide,
+  reorderSlides,
+  deleteDraft,
+  duplicateDraft,
+} from "../controllers/draftController";
+import { protect } from "../middlewares/auth";
+
+const router = express.Router();
+
+router.use(protect);
+
+router.post("/", createDraft);
+router.get("/", getUserDrafts);
+router.get("/:id", getDraftById);
+router.put("/:id", updateDraft);
+router.delete("/:id", deleteDraft);
+router.post("/:id/duplicate", duplicateDraft);
+
+// Slide operations
+router.put("/:id/slides/:slideId", updateSlide);
+router.post("/:id/slides", addSlide);
+router.delete("/:id/slides/:slideId", deleteSlide);
+router.put("/:id/slides/reorder", reorderSlides);
+
+export default router;

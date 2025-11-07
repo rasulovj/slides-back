@@ -8,6 +8,8 @@ const ai = new GoogleGenAI({
 interface GeneratedSlides {
   title: string;
   slides: {
+    chartData: any;
+    stats: any;
     title: string;
     content: string[];
     type: "title" | "content" | "image";

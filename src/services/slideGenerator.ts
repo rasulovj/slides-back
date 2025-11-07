@@ -5,7 +5,14 @@ import { ITheme } from "../models/theme";
 interface SlideContent {
   title: string;
   content: string[];
-  type: "title" | "content" | "stats" | "timeline" | "image" | "closing";
+  type:
+    | "title"
+    | "content"
+    | "stats"
+    | "timeline"
+    | "image"
+    | "closing"
+    | "chart";
   stats?: { label: string; value: string; description: string }[];
   chartData?: any;
   imageUrl?: string;
@@ -274,7 +281,7 @@ export class SlideGeneratorService {
     // Chart data
     const chartDataFormatted = chartData.map((item) => ({
       name: item.label,
-      labels: [item.label],
+      labels: [item?.label],
       values: [item.value],
     }));
 

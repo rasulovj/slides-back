@@ -11,6 +11,9 @@ import presentationRoutes from "./routes/presentationRoute";
 import userRoute from "./routes/userRoute";
 import Theme from "./models/theme";
 import { seedThemes } from "./seeds/seedThemes";
+import draftRoutes from "./routes/draftRoute";
+import { protect } from "./middlewares/auth";
+import { generateFromDraft } from "./controllers/presentationController";
 
 dotenv.config();
 
@@ -57,6 +60,12 @@ const startServer = async () => {
     app.use("/api/themes", themeRoutes);
     app.use("/api/presentations", presentationRoutes);
     app.use("/api/users", userRoute);
+    app.use("/api/drafts", draftRoutes);
+    app.post(
+      "/api/presentations/from-draft/:draftId",
+      protect,
+      generateFromDraft
+    );
 
     app.get("/health", (req, res) => {
       res.status(200).json({ status: "OK", message: "Server is running" });
