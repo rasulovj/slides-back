@@ -1,5 +1,5 @@
 // src/services/aiService.ts
-import { GoogleGenAI } from "@google/genai";
+const { GoogleGenAI } = await import("@google/genai");
 
 const ai = new GoogleGenAI({
   apiKey: "AIzaSyAdgC3meYXkhJoD4CuPwDBD4801lNp38eg",

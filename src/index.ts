@@ -19,7 +19,6 @@ import { generateFromDraft } from "./controllers/presentationController.js";
 
 dotenv.config();
 
-// Create __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 

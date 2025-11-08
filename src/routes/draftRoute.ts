@@ -25,7 +25,7 @@ router.get("/:id", getDraftById);
 router.put("/:id", updateDraft);
 router.delete("/:id", deleteDraft);
 router.post("/:id/duplicate", duplicateDraft);
-router.put("/:id/thumbnail", updateDraftThumbnail);
+// router.put("/:id/thumbnail", updateDraftThumbnail);
 
 // Slide operation
 router.put("/:id/slides/:slideId", updateSlide);
