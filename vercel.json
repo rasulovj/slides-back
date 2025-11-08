@@ -1,8 +1,0 @@
-{
-  "functions": {
-    "api/**/*.ts": {
-      "memory": 2040,
-      "maxDuration": 60
-    }
-  }
-}
