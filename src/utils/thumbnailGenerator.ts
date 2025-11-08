@@ -3,6 +3,7 @@ import puppeteer from "puppeteer";
 import { ISlide } from "../models/presentationDraft.js";
 import { ITheme } from "../models/theme.js";
 import cloudinary from "../config/cloudinary.js";
+import chromium from "@sparticuz/chromium";
 
 export class ThumbnailGenerator {
   async generateThumbnail(
@@ -11,8 +12,17 @@ export class ThumbnailGenerator {
     draftId: string
   ): Promise<string> {
     const browser = await puppeteer.launch({
+      args: [...chromium.args, "--disable-web-security", "--single-process"],
+      defaultViewport: {
+        width: 1920,
+        height: 1080,
+        deviceScaleFactor: 1,
+      },
+      executablePath:
+        process.env.NODE_ENV === "production"
+          ? await chromium.executablePath()
+          : undefined,
       headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
 
     try {
@@ -20,7 +30,7 @@ export class ThumbnailGenerator {
       await page.setViewport({ width: 1920, height: 1080 });
 
       const html = this.generateSlideHTML(slide, theme);
-      await page.setContent(html, { waitUntil: "networkidle0" });
+      await page.setContent(html, { waitUntil: "domcontentloaded" });
 
       // Take screenshot as base64
       const screenshotBase64 = (await page.screenshot({
