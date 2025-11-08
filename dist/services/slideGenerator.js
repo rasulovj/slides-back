@@ -1,9 +1,9 @@
 // src/services/slideGenerator.ts
-import pptxgen from "pptxgenjs";
+import PptxGenJS from "pptxgenjs";
 export class SlideGeneratorService {
     constructor(theme) {
         this.slideIndex = 0;
-        this.pptx = new pptxgen();
+        this.pptx = new PptxGenJS.default();
         this.theme = theme;
         this.setupPresentation();
     }

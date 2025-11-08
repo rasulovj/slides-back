@@ -2,8 +2,8 @@
 import puppeteer from "puppeteer";
 import path from "path";
 import fs from "fs/promises";
-import { ISlide } from "../models/presentationDraft";
-import { ITheme } from "../models/theme";
+import { ISlide } from "../models/presentationDraft.js";
+import { ITheme } from "../models/theme.js";
 
 export class ThumbnailGenerator {
   async generateThumbnail(
