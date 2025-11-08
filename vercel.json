@@ -1,8 +1,15 @@
 {
-  "functions": {
-    "api/**/*.ts": {
-      "memory": 2000,
-      "maxDuration": 60
+  "builds": [
+    {
+      "src": "index.ts",
+      "use": "@vercel/node"
     }
-  }
+  ],
+  "routes": [
+    {
+      "src": "src/(.*)",
+      "dest": "src/index.ts",
+      "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+    }
+  ]
 }
