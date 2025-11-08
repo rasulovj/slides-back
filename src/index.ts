@@ -113,18 +113,19 @@ dotenv.config();
 
 const app = express();
 
+// CORS
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:5173",
+  "https://slidesmind.vercel.app",
+  "https://slides-back.vercel.app",
+];
+
 app.use(
   cors({
-    origin: true, // allow all URLs
-    credentials: true, // allow cookies to be sent
-  })
-);
-
-// Enable preflight for non-GET/POST requests
-app.options(
-  "*",
-  cors({
-    origin: true,
+    origin: allowedOrigins,
     credentials: true,
   })
 );
