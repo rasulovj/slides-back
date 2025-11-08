@@ -5,13 +5,13 @@ import {
   getUserDrafts,
   getDraftById,
   updateDraft,
-  updateSlide,
-  addSlide,
-  deleteSlide,
-  reorderSlides,
-  deleteDraft,
-  duplicateDraft,
-  updateDraftThumbnail,
+  // updateSlide,
+  // addSlide,
+  // deleteSlide,
+  // reorderSlides,
+  // deleteDraft,
+  // duplicateDraft,
+  // updateDraftThumbnail,
 } from "../controllers/draftController.js";
 import { protect } from "../middlewares/auth.js";
 
@@ -23,7 +23,7 @@ router.post("/", createDraft);
 router.get("/", getUserDrafts);
 router.get("/:id", getDraftById);
 router.put("/:id", updateDraft);
-router.delete("/:id", deleteDraft);
+// router.delete("/:id", deleteDraft);
 // router.post("/:id/duplicate", duplicateDraft);
 // router.put("/:id/thumbnail", updateDraftThumbnail);
 
