@@ -9,7 +9,8 @@
     "dev": "ts-node src/index.ts",
     "build": "tsc",
     "start": "node dist/index.ts",
-    "seed:themes": "ts-node src/seeds/seedThemes.ts"
+    "seed:themes": "ts-node src/seeds/seedThemes.ts",
+    "type": "module"
   },
   "dependencies": {
     "@google/genai": "^1.28.0",
