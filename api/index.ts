@@ -94,7 +94,7 @@
 // startServer();
 
 // api/index.js
-import express from "express";
+import express, { Request, Response } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import morgan from "morgan";
@@ -167,4 +167,4 @@ const initDb = async () => {
 await initDb();
 
 // **Export app as serverless handler**
-export default (req: any, res: any) => app(req, res);
+export default (req: Request, res: Response) => app(req, res);

@@ -1,4 +1,8 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist"
+  "functions": {
+    "api/**/*.ts": {
+      "memory": 2000,
+      "maxDuration": 60
+    }
+  }
 }
