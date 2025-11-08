@@ -1,11 +1,4 @@
 {
-  "functions": {
-    "api/**/*.js": {
-      "memory": 2000,
-      "maxDuration": 60
-    }
-  },
-  "env": {
-    "VERCEL": "1"
-  }
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist"
 }
