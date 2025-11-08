@@ -3,7 +3,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 interface TokenPayload {
   id: string;
   email: string;
-  isPremium: boolean;
+  isPremium?: boolean;
 }
 
 interface TokenPair {
