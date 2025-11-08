@@ -1,4 +1,3 @@
-// src/controllers/draftController.ts
 import { Response } from "express";
 import { AuthRequest } from "../types/index.js";
 import PresentationDraft, { ISlide } from "../models/presentationDraft.js";
@@ -118,7 +117,6 @@ export const getUserDrafts = async (
   }
 };
 
-// src/controllers/draftController.ts
 export const updateDraftThumbnail = async (
   req: AuthRequest,
   res: Response
