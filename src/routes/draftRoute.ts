@@ -11,6 +11,7 @@ import {
   reorderSlides,
   deleteDraft,
   duplicateDraft,
+  updateDraftThumbnail,
 } from "../controllers/draftController.js";
 import { protect } from "../middlewares/auth.js";
 
@@ -24,6 +25,7 @@ router.get("/:id", getDraftById);
 router.put("/:id", updateDraft);
 router.delete("/:id", deleteDraft);
 router.post("/:id/duplicate", duplicateDraft);
+router.put("/:id/thumbnail", updateDraftThumbnail);
 
 // Slide operations
 router.put("/:id/slides/:slideId", updateSlide);

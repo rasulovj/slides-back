@@ -5,10 +5,11 @@ import PresentationDraft, { ISlide } from "../models/presentationDraft.js";
 import Theme from "../models/theme.js";
 import { AIService } from "../services/aiService.js";
 import { v4 as uuidv4 } from "uuid";
-import { ThumbnailGenerator } from "../utils/thumbnailGenerator.js";
+import cloudinary from "../config/cloudinary.js";
+// import { ThumbnailGenerator } from "../utils/thumbnailGenerator.js";
 
 const aiService = new AIService();
-const thumbnailGenerator = new ThumbnailGenerator();
+// const thumbnailGenerator = new ThumbnailGenerator();
 
 // Create new draft from AI generation
 export const createDraft = async (
@@ -57,20 +58,8 @@ export const createDraft = async (
       slides,
       status: "draft",
       lastEditedAt: new Date(),
+      thumbnail: null,
     });
-
-    if (slides.length > 0) {
-      const draftId = String(draft._id);
-      thumbnailGenerator
-        .generateThumbnail(slides[0], theme, draftId)
-        .then(async (thumbnailUrl) => {
-          draft.thumbnail = thumbnailUrl;
-          await draft.save();
-        })
-        .catch((error) => {
-          console.error("Thumbnail generation failed:", error);
-        });
-    }
 
     res.status(201).json({
       success: true,
@@ -129,6 +118,63 @@ export const getUserDrafts = async (
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
+  }
+};
+
+// src/controllers/draftController.ts
+export const updateDraftThumbnail = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { thumbnail } = req.body; // Base64 or Cloudinary URL
+    const userId = req.user?.id;
+
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    if (!thumbnail) {
+      res.status(400).json({ message: "Thumbnail is required" });
+      return;
+    }
+
+    const draft = await PresentationDraft.findOne({ _id: id, userId });
+
+    if (!draft) {
+      res.status(404).json({ message: "Draft not found" });
+      return;
+    }
+
+    // If it's a base64 string, upload to Cloudinary
+    let thumbnailUrl = thumbnail;
+
+    if (thumbnail.startsWith("data:image")) {
+      const uploadResult = await cloudinary.uploader.upload(thumbnail, {
+        folder: "presentation-thumbnails",
+        public_id: `thumbnail-${id}`,
+        overwrite: true,
+        resource_type: "image",
+        quality: "auto:good",
+      });
+      thumbnailUrl = uploadResult.secure_url;
+    }
+
+    draft.thumbnail = thumbnailUrl;
+    await draft.save();
+
+    res.status(200).json({
+      success: true,
+      thumbnail: thumbnailUrl,
+    });
+  } catch (error: any) {
+    console.error("Update thumbnail error:", error);
+    res.status(500).json({
+      message: "Failed to update thumbnail",
+      error: error.message,
+    });
   }
 };
 
