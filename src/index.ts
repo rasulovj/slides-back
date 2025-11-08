@@ -4,7 +4,7 @@ import cors from "cors";
 import morgan from "morgan";
 import path from "path";
 import fs from "fs/promises";
-import connectDb from "./config/db";
+import connectDb from "./config/db.js";
 import authRoutes from "./routes/authRoutes";
 import themeRoutes from "./routes/themeRouter";
 import presentationRoutes from "./routes/presentationRoute";
