@@ -4,7 +4,7 @@
   "description": "An api for making slides",
   "license": "ISC",
   "author": "Jamshidbek Rasulov",
-  "main": "index.ts",
+  "main": "dist/index.ts",
   "type": "module",
   "scripts": {
     "dev": "ts-node src/index.ts",
