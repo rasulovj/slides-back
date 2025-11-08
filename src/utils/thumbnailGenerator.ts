@@ -1,9 +1,8 @@
 // src/services/thumbnailGenerator.ts
 import puppeteer from "puppeteer";
-import path from "path";
-import fs from "fs/promises";
 import { ISlide } from "../models/presentationDraft.js";
 import { ITheme } from "../models/theme.js";
+import cloudinary from "../config/cloudinary.js";
 
 export class ThumbnailGenerator {
   async generateThumbnail(
@@ -21,21 +20,26 @@ export class ThumbnailGenerator {
       await page.setViewport({ width: 1920, height: 1080 });
 
       const html = this.generateSlideHTML(slide, theme);
-
       await page.setContent(html, { waitUntil: "networkidle0" });
 
-      // Take screenshot
-      const filename = `thumbnail-${draftId}.png`;
-      const thumbnailDir = path.join(__dirname, "../../uploads/thumbnails");
-      await fs.mkdir(thumbnailDir, { recursive: true });
-
-      const filepath = path.join(thumbnailDir, filename);
-      await page.screenshot({
-        path: filepath as `${string}.png`,
+      // Take screenshot as base64
+      const screenshotBase64 = (await page.screenshot({
         type: "png",
-      });
+        encoding: "base64",
+      })) as string;
 
-      return `/uploads/thumbnails/${filename}`;
+      // Upload directly to Cloudinary
+      const uploadResult = await cloudinary.uploader.upload(
+        `data:image/png;base64,${screenshotBase64}`,
+        {
+          folder: "presentation-thumbnails",
+          public_id: `thumbnail-${draftId}`,
+          overwrite: true,
+          resource_type: "image",
+        }
+      );
+
+      return uploadResult.secure_url;
     } finally {
       await browser.close();
     }
