@@ -5,15 +5,15 @@ import morgan from "morgan";
 import path from "path";
 import fs from "fs/promises";
 import connectDb from "./config/db.js";
-import authRoutes from "./routes/authRoutes";
-import themeRoutes from "./routes/themeRouter";
-import presentationRoutes from "./routes/presentationRoute";
-import userRoute from "./routes/userRoute";
-import Theme from "./models/theme";
-import { seedThemes } from "./seeds/seedThemes";
-import draftRoutes from "./routes/draftRoute";
-import { protect } from "./middlewares/auth";
-import { generateFromDraft } from "./controllers/presentationController";
+import authRoutes from "./routes/authRoutes.js";
+import themeRoutes from "./routes/themeRouter.js";
+import presentationRoutes from "./routes/presentationRoute.js";
+import userRoute from "./routes/userRoute.js";
+import Theme from "./models/theme.js";
+import { seedThemes } from "./seeds/seedThemes.js";
+import draftRoutes from "./routes/draftRoute.js";
+import { protect } from "./middlewares/auth.js";
+import { generateFromDraft } from "./controllers/presentationController.js";
 
 dotenv.config();
 
