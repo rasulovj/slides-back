@@ -4,12 +4,12 @@
   "description": "An api for making slides",
   "license": "ISC",
   "author": "Jamshidbek Rasulov",
-  "main": "dist/index.ts",
+  "main": "node dist/index.ts",
   "type": "module",
   "scripts": {
-    "dev": "ts-node src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.ts",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
     "seed:themes": "ts-node src/seeds/seedThemes.ts"
   },
   "dependencies": {
@@ -42,6 +42,7 @@
     "@types/node": "^24.10.0",
     "@types/xml2js": "^0.4.14",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }
 }

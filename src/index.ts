@@ -4,6 +4,8 @@ import cors from "cors";
 import morgan from "morgan";
 import path from "path";
 import fs from "fs/promises";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 import connectDb from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import themeRoutes from "./routes/themeRouter.js";
@@ -16,6 +18,10 @@ import { protect } from "./middlewares/auth.js";
 import { generateFromDraft } from "./controllers/presentationController.js";
 
 dotenv.config();
+
+// Create __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 
@@ -40,7 +46,7 @@ app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: true }));
 
 const uploadsPath = path.join(__dirname, "../uploads");
-fs.mkdir(uploadsPath, { recursive: true });
+await fs.mkdir(uploadsPath, { recursive: true });
 app.use("/uploads", express.static(uploadsPath));
 
 const startServer = async () => {

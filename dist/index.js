@@ -1,56 +1,74 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-// src/server.ts
-const express_1 = __importDefault(require("express"));
-const dotenv_1 = __importDefault(require("dotenv"));
-const cors_1 = __importDefault(require("cors"));
-const morgan_1 = __importDefault(require("morgan"));
-const db_1 = __importDefault(require("./src/config/db"));
-dotenv_1.default.config();
-const app = (0, express_1.default)();
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import morgan from "morgan";
+import path from "path";
+import fs from "fs/promises";
+import connectDb from "./config/db.js";
+import authRoutes from "./routes/authRoutes.js";
+import themeRoutes from "./routes/themeRouter.js";
+import presentationRoutes from "./routes/presentationRoute.js";
+import userRoute from "./routes/userRoute.js";
+import Theme from "./models/theme.js";
+import { seedThemes } from "./seeds/seedThemes.js";
+import draftRoutes from "./routes/draftRoute.js";
+import { protect } from "./middlewares/auth.js";
+import { generateFromDraft } from "./controllers/presentationController.js";
+dotenv.config();
+const app = express();
 const allowedOrigins = [
-    process.env.ADMIN_URL,
-    process.env.CLIENT_URL,
-    process.env.PRODUCTION_SERVER_URL,
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "http://localhost:8000",
-].filter(Boolean);
-app.use((0, cors_1.default)({
-    origin: function (origin, callback) {
-        if (!origin)
-            return callback(null, true);
-        if (process.env.NODE_ENV === "development") {
-            return callback(null, true);
-        }
-        if (allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        }
-        else {
-            callback(new Error("Not allowed by CORS"));
-        }
-    },
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:5173",
+  "https://slidesmind.vercel.app",
+  "https://slides-back.vercel.app",
+];
+app.use(
+  cors({
+    origin: allowedOrigins,
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-}));
-app.use((0, cors_1.default)());
-app.use(express_1.default.json());
-app.use((0, morgan_1.default)("dev"));
-app.use(express_1.default.urlencoded({ extended: true }));
-(0, db_1.default)();
-// Routes (we'll add these next)
-// app.use("/api/auth", authRoutes);
-// app.use("/api/presentations", presentationRoutes);
-// app.use("/api/payment", paymentRoutes);
-// Health check
-app.get("/health", (req, res) => {
-    res.status(200).json({ status: "OK", message: "Server is running" });
-});
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-});
+  })
+);
+app.use(express.json());
+app.use(morgan("dev"));
+app.use(express.urlencoded({ extended: true }));
+const uploadsPath = path.join(__dirname, "../uploads");
+fs.mkdir(uploadsPath, { recursive: true });
+app.use("/uploads", express.static(uploadsPath));
+const startServer = async () => {
+  try {
+    await connectDb();
+    const count = await Theme.countDocuments();
+    if (count === 0) {
+      console.log("🌱 Seeding themes...");
+      await seedThemes();
+    } else {
+      console.log("🧹 Clearing old themes...");
+      await Theme.deleteMany({});
+      console.log("🌱 Reseeding themes...");
+      await seedThemes();
+    }
+    app.use("/api/auth", authRoutes);
+    app.use("/api/themes", themeRoutes);
+    app.use("/api/presentations", presentationRoutes);
+    app.use("/api/users", userRoute);
+    app.use("/api/drafts", draftRoutes);
+    app.post(
+      "/api/presentations/from-draft/:draftId",
+      protect,
+      generateFromDraft
+    );
+    app.get("/health", (req, res) => {
+      res.status(200).json({ status: "OK", message: "Server is running" });
+    });
+    const PORT = process.env.PORT || 8080;
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("❌ Server startup error:", error);
+    process.exit(1);
+  }
+};
+startServer();
