@@ -9,6 +9,6 @@ const router = express.Router();
 
 router.get("/", getAllThemes);
 router.get("/:slug", getThemeBySlug);
-router.get("/category/:category", getThemesByCategory);
+// router.get("/category/:category", getThemesByCategory);
 
 export default router;

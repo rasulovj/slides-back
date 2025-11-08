@@ -24,13 +24,13 @@ router.get("/", getUserDrafts);
 router.get("/:id", getDraftById);
 router.put("/:id", updateDraft);
 router.delete("/:id", deleteDraft);
-router.post("/:id/duplicate", duplicateDraft);
+// router.post("/:id/duplicate", duplicateDraft);
 // router.put("/:id/thumbnail", updateDraftThumbnail);
 
 // Slide operation
-router.put("/:id/slides/:slideId", updateSlide);
-router.post("/:id/slides", addSlide);
-router.delete("/:id/slides/:slideId", deleteSlide);
-router.put("/:id/slides/reorder", reorderSlides);
+// router.put("/:id/slides/:slideId", updateSlide);
+// router.post("/:id/slides", addSlide);
+// router.delete("/:id/slides/:slideId", deleteSlide);
+// router.put("/:id/slides/reorder", reorderSlides);
 
 export default router;
