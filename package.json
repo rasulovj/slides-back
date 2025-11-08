@@ -13,7 +13,7 @@
     "seed:themes": "ts-node src/seeds/seedThemes.ts"
   },
   "engines": {
-    "node": "18"
+    "node": "20"
   },
   "dependencies": {
     "@google/genai": "^1.28.0",
