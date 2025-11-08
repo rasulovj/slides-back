@@ -29,7 +29,6 @@
     "mongoose": "^8.19.2",
     "morgan": "^1.10.1",
     "nodemon": "^3.1.10",
-    "openai": "^6.8.0",
     "pptxgenjs": "^4.0.1",
     "puppeteer-core": "^24.29.1",
     "uuid": "^13.0.0",

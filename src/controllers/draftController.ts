@@ -6,12 +6,9 @@ import Theme from "../models/theme.js";
 import { AIService } from "../services/aiService.js";
 import { v4 as uuidv4 } from "uuid";
 import cloudinary from "../config/cloudinary.js";
-// import { ThumbnailGenerator } from "../utils/thumbnailGenerator.js";
 
 const aiService = new AIService();
-// const thumbnailGenerator = new ThumbnailGenerator();
 
-// Create new draft from AI generation
 export const createDraft = async (
   req: AuthRequest,
   res: Response

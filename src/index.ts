@@ -63,6 +63,9 @@ const startServer = async () => {
       console.log("🌱 Reseeding themes...");
       await seedThemes();
     }
+    console.log(
+      `Memory used: ${(process.memoryUsage().rss / 1024 / 1024).toFixed(2)} MB`
+    );
 
     app.use("/api/auth", authRoutes);
     app.use("/api/themes", themeRoutes);
