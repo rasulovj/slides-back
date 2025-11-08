@@ -11,8 +11,8 @@ import {
   reorderSlides,
   deleteDraft,
   duplicateDraft,
-} from "../controllers/draftController";
-import { protect } from "../middlewares/auth";
+} from "../controllers/draftController.js";
+import { protect } from "../middlewares/auth.js";
 
 const router = express.Router();
 

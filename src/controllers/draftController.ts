@@ -1,11 +1,11 @@
 // src/controllers/draftController.ts
 import { Response } from "express";
-import { AuthRequest } from "../types";
-import PresentationDraft, { ISlide } from "../models/presentationDraft";
-import Theme from "../models/theme";
-import { AIService } from "../services/aiService";
+import { AuthRequest } from "../types/index.js";
+import PresentationDraft, { ISlide } from "../models/presentationDraft.js";
+import Theme from "../models/theme.js";
+import { AIService } from "../services/aiService.js";
 import { v4 as uuidv4 } from "uuid";
-import { ThumbnailGenerator } from "../utils/thumbnailGenerator";
+import { ThumbnailGenerator } from "../utils/thumbnailGenerator.js";
 
 const aiService = new AIService();
 const thumbnailGenerator = new ThumbnailGenerator();

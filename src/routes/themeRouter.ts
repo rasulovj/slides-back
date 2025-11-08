@@ -3,7 +3,7 @@ import {
   getAllThemes,
   getThemeBySlug,
   getThemesByCategory,
-} from "../controllers/themeController";
+} from "../controllers/themeController.js";
 
 const router = express.Router();
 

@@ -2,8 +2,8 @@ import express from "express";
 import {
   generateFromDraft,
   // getUserPresentations,
-} from "../controllers/presentationController";
-import { protect } from "../middlewares/auth";
+} from "../controllers/presentationController.js";
+import { protect } from "../middlewares/auth.js";
 
 const router = express.Router();
 

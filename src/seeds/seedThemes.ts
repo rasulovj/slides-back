@@ -1,5 +1,5 @@
 // src/seeds/themes.ts
-import Theme from "../models/theme";
+import Theme from "../models/theme.js";
 
 export const seedThemes = async () => {
   const themes = [

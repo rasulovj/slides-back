@@ -1,12 +1,12 @@
 // src/controllers/presentationController.ts
 
 import { Response } from "express";
-import { AuthRequest } from "../types";
-import User from "../models/user";
-import Theme from "../models/theme";
-import Presentation from "../models/presentation";
-import PresentationDraft from "../models/presentationDraft";
-import { SlideGeneratorService } from "../services/slideGenerator";
+import { AuthRequest } from "../types/index.js";
+import User from "../models/user.js";
+import Theme from "../models/theme.js";
+import Presentation from "../models/presentation.js";
+import PresentationDraft from "../models/presentationDraft.js";
+import { SlideGeneratorService } from "../services/slideGenerator.js";
 import path from "path";
 import fs from "fs/promises";
 

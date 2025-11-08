@@ -5,8 +5,8 @@ import {
   refreshToken,
   logout,
   logoutAll,
-} from "../controllers/authController";
-import { protect } from "../middlewares/auth";
+} from "../controllers/authController.js";
+import { protect } from "../middlewares/auth.js";
 
 const router = express.Router();
 

@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
-import User from "../models/user";
-import tokenService from "../utils/generateToken";
-import { AuthRequest } from "../types";
+import User from "../models/user.js";
+import tokenService from "../utils/generateToken.js";
+import { AuthRequest } from "../types/index.js";
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {

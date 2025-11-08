@@ -1,6 +1,6 @@
 // src/services/slideGenerator.ts
-import PptxGenJS from "pptxgenjs";
-import { ITheme } from "../models/theme";
+import pptxgen from "pptxgenjs";
+import { ITheme } from "../models/theme.js";
 
 interface SlideContent {
   title: string;
@@ -19,12 +19,12 @@ interface SlideContent {
 }
 
 export class SlideGeneratorService {
-  private pptx: PptxGenJS;
+  private pptx: any;
   private theme: ITheme;
   private slideIndex: number = 0;
 
   constructor(theme: ITheme) {
-    this.pptx = new PptxGenJS();
+    this.pptx = new pptxgen();
     this.theme = theme;
     this.setupPresentation();
   }

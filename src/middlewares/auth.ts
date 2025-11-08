@@ -1,7 +1,7 @@
 // src/middleware/auth.ts
 import { Response, NextFunction } from "express";
-import { AuthRequest } from "../types";
-import tokenService from "../utils/generateToken";
+import { AuthRequest } from "../types/index.js";
+import tokenService from "../utils/generateToken.js";
 
 export const protect = async (
   req: AuthRequest,

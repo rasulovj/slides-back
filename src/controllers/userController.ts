@@ -1,8 +1,8 @@
 import { Response } from "express";
 import asyncHandler from "express-async-handler";
-import cloudinary from "../config/cloudinary";
-import User from "../models/user";
-import { AuthRequest } from "../types";
+import cloudinary from "../config/cloudinary.js";
+import User from "../models/user.js";
+import { AuthRequest } from "../types/index.js";
 
 export const updateUser = asyncHandler(
   async (req: AuthRequest, res: Response) => {

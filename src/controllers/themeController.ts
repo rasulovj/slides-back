@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import Theme from "../models/theme";
+import Theme from "../models/theme.js";
 
 export const getAllThemes = async (
   req: Request,
