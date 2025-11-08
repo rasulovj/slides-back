@@ -1,9 +1,9 @@
 // src/services/thumbnailGenerator.ts
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
+import cloudinary from "../config/cloudinary.js";
 import { ISlide } from "../models/presentationDraft.js";
 import { ITheme } from "../models/theme.js";
-import cloudinary from "../config/cloudinary.js";
-import chromium from "@sparticuz/chromium";
 
 export class ThumbnailGenerator {
   async generateThumbnail(
@@ -11,34 +11,37 @@ export class ThumbnailGenerator {
     theme: ITheme,
     draftId: string
   ): Promise<string> {
-    const browser = await puppeteer.launch({
-      args: [...chromium.args, "--disable-web-security", "--single-process"],
-      defaultViewport: {
-        width: 1920,
-        height: 1080,
-        deviceScaleFactor: 1,
-      },
-      executablePath:
-        process.env.NODE_ENV === "production"
-          ? await chromium.executablePath()
-          : undefined,
-      headless: true,
-    });
+    let browser;
 
     try {
+      const executablePath = await chromium.executablePath();
+
+      console.log(
+        "Chromium executable path:",
+        executablePath || "Default path"
+      );
+
+      browser = await puppeteer.launch({
+        args: chromium.args,
+        defaultViewport: { width: 1920, height: 1080, deviceScaleFactor: 1 },
+        executablePath: executablePath || undefined,
+        headless: "shell",
+      });
+
+      console.log("Browser launched successfully");
+
       const page = await browser.newPage();
       await page.setViewport({ width: 1920, height: 1080 });
 
       const html = this.generateSlideHTML(slide, theme);
       await page.setContent(html, { waitUntil: "domcontentloaded" });
 
-      // Take screenshot as base64
       const screenshotBase64 = (await page.screenshot({
         type: "png",
+        quality: 80,
         encoding: "base64",
       })) as string;
 
-      // Upload directly to Cloudinary
       const uploadResult = await cloudinary.uploader.upload(
         `data:image/png;base64,${screenshotBase64}`,
         {
@@ -46,107 +49,107 @@ export class ThumbnailGenerator {
           public_id: `thumbnail-${draftId}`,
           overwrite: true,
           resource_type: "image",
+          timeout: 60000,
         }
       );
 
+      console.log("Thumbnail uploaded successfully:", uploadResult.secure_url);
       return uploadResult.secure_url;
+    } catch (err) {
+      console.error("Thumbnail generation error:", err);
+      throw err;
     } finally {
-      await browser.close();
+      if (browser) {
+        await browser.close();
+      }
     }
   }
 
   private generateSlideHTML(slide: ISlide, theme: ITheme): string {
-    const styles = this.getThemeStyles(theme);
+    const bgColor =
+      slide.type === "title" ? theme.colors.primary : theme.colors.background;
 
     let slideContent = "";
 
     switch (slide.type) {
       case "title":
         slideContent = `
-          <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 80px;">
-            <h1 style="font-size: 72px; font-weight: bold; color: white; margin-bottom: 30px; font-family: ${
+          <div style="height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:80px;">
+            <h1 style="font-size:72px;font-weight:bold;color:white;margin-bottom:30px;font-family:${
               theme.fonts.heading
             };">
               ${slide.title}
             </h1>
             ${
               slide.content[0]
-                ? `
-              <p style="font-size: 36px; color: rgba(255,255,255,0.9); font-family: ${theme.fonts.body};">
-                ${slide.content[0]}
-              </p>
-            `
+                ? `<p style="font-size:36px;color:rgba(255,255,255,0.9);font-family:${theme.fonts.body};">
+                    ${slide.content[0]}
+                  </p>`
                 : ""
             }
-          </div>
-        `;
+          </div>`;
         break;
 
       case "content":
         slideContent = `
-          <div style="height: 100%; padding: 80px;">
-            <h2 style="font-size: 56px; font-weight: bold; color: ${
+          <div style="height:100%;padding:80px;">
+            <h2 style="font-size:56px;font-weight:bold;color:${
               theme.colors.text
-            }; margin-bottom: 60px; font-family: ${theme.fonts.heading};">
+            };margin-bottom:60px;font-family:${theme.fonts.heading};">
               ${slide.title}
             </h2>
-            <ul style="list-style: none; padding: 0; font-size: 32px; line-height: 1.8; font-family: ${
+            <ul style="list-style:none;padding:0;font-size:32px;line-height:1.8;font-family:${
               theme.fonts.body
             };">
               ${slide.content
                 .map(
                   (item) => `
-                <li style="margin-bottom: 30px; display: flex; align-items: start;">
-                  <span style="color: ${theme.colors.primary}; font-size: 40px; margin-right: 20px;">•</span>
-                  <span style="color: ${theme.colors.text};">${item}</span>
-                </li>
-              `
+                  <li style="margin-bottom:30px;display:flex;align-items:start;">
+                    <span style="color:${theme.colors.primary};font-size:40px;margin-right:20px;">•</span>
+                    <span style="color:${theme.colors.text};">${item}</span>
+                  </li>`
                 )
                 .join("")}
             </ul>
-          </div>
-        `;
+          </div>`;
         break;
 
       case "stats":
         slideContent = `
-          <div style="height: 100%; padding: 80px;">
-            <h2 style="font-size: 56px; font-weight: bold; color: ${
+          <div style="height:100%;padding:80px;">
+            <h2 style="font-size:56px;font-weight:bold;color:${
               theme.colors.text
-            }; margin-bottom: 60px; font-family: ${theme.fonts.heading};">
+            };margin-bottom:60px;font-family:${theme.fonts.heading};">
               ${slide.title}
             </h2>
-            <div style="display: flex; flex-direction: column; gap: 50px;">
+            <div style="display:flex;flex-direction:column;gap:50px;">
               ${(slide.stats || [])
                 .map(
                   (stat) => `
-                <div style="display: flex; align-items: center; gap: 40px;">
-                  <div style="font-size: 80px; font-weight: bold; color: ${theme.colors.primary}; font-family: ${theme.fonts.heading};">
+                <div style="display:flex;align-items:center;gap:40px;">
+                  <div style="font-size:80px;font-weight:bold;color:${theme.colors.primary};font-family:${theme.fonts.heading};">
                     ${stat.value}
                   </div>
                   <div>
-                    <div style="font-size: 32px; font-weight: bold; color: ${theme.colors.text}; margin-bottom: 10px; font-family: ${theme.fonts.heading};">
+                    <div style="font-size:32px;font-weight:bold;color:${theme.colors.text};margin-bottom:10px;font-family:${theme.fonts.heading};">
                       ${stat.label}
                     </div>
-                    <div style="font-size: 24px; color: ${theme.colors.textLight}; font-family: ${theme.fonts.body};">
+                    <div style="font-size:24px;color:${theme.colors.textLight};font-family:${theme.fonts.body};">
                       ${stat.description}
                     </div>
                   </div>
-                </div>
-              `
+                </div>`
                 )
                 .join("")}
             </div>
-          </div>
-        `;
+          </div>`;
         break;
 
       default:
         slideContent = `
-          <div style="height: 100%; display: flex; justify-content: center; align-items: center;">
-            <p style="font-size: 48px; color: ${theme.colors.text};">Slide Preview</p>
-          </div>
-        `;
+          <div style="height:100%;display:flex;justify-content:center;align-items:center;">
+            <p style="font-size:48px;color:${theme.colors.text};">Slide Preview</p>
+          </div>`;
     }
 
     return `
@@ -155,44 +158,18 @@ export class ThumbnailGenerator {
         <head>
           <meta charset="UTF-8">
           <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
+            * { margin:0; padding:0; box-sizing:border-box; }
             body {
-              width: 1920px;
-              height: 1080px;
-              margin: 0;
-              padding: 0;
-              overflow: hidden;
-            }
-            .slide {
-              width: 100%;
-              height: 100%;
-              background: ${
-                slide.type === "title"
-                  ? theme.colors.primary
-                  : theme.colors.background
-              };
+              width:1920px;
+              height:1080px;
+              margin:0;
+              padding:0;
+              overflow:hidden;
+              background:${bgColor};
             }
           </style>
         </head>
-        <body>
-          <div class="slide">
-            ${slideContent}
-          </div>
-        </body>
-      </html>
-    `;
-  }
-
-  private getThemeStyles(theme: ITheme) {
-    return {
-      backgroundColor: theme.colors.background,
-      primaryColor: theme.colors.primary,
-      secondaryColor: theme.colors.secondary,
-      accentColor: theme.colors.accent,
-      textColor: theme.colors.text,
-      textLightColor: theme.colors.textLight,
-      headingFont: theme.fonts.heading,
-      bodyFont: theme.fonts.body,
-    };
+        <body>${slideContent}</body>
+      </html>`;
   }
 }
