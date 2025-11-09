@@ -14,7 +14,7 @@ interface SlideContent {
     | "closing"
     | "chart";
   stats?: { label: string; value: string; description: string }[];
-  chartData?: any;
+  chartData?: { label: string; value: number }[];
   imageUrl?: string;
 }
 
@@ -96,17 +96,6 @@ export class SlideGeneratorService {
       fill: { color: this.theme.colors.secondary },
     });
 
-    slide.addText("LOGO", {
-      x: 4.8,
-      y: 0.9,
-      w: 1.5,
-      h: 0.3,
-      fontSize: 18,
-      bold: true,
-      color: this.theme.colors.secondary,
-      fontFace: this.theme.fonts.heading,
-    });
-
     slide.addText(title, {
       x: 4.3,
       y: 2,
@@ -120,7 +109,7 @@ export class SlideGeneratorService {
       breakLine: true,
     });
 
-    slide.addText(subtitle, {
+    slide.addText(subtitle || "", {
       x: 4.3,
       y: 3.9,
       w: 5.2,
@@ -130,7 +119,6 @@ export class SlideGeneratorService {
       fontFace: this.theme.fonts.body,
     });
 
-    // Author info (bottom right on white section)
     slide.addShape(this.pptx.ShapeType.rect, {
       x: 0,
       y: 5.2,
@@ -152,7 +140,6 @@ export class SlideGeneratorService {
       lineSpacing: 20,
     });
 
-    // Avatar placeholder
     slide.addShape(this.pptx.ShapeType.ellipse, {
       x: 3.2,
       y: 5.5,
@@ -164,7 +151,6 @@ export class SlideGeneratorService {
     this.slideIndex++;
   }
 
-  // Layout 2: Stats/Metrics Slide (Left Image + Right Stats)
   createStatsSlide(
     title: string,
     stats: { label: string; value: string; description: string }[],
@@ -174,7 +160,6 @@ export class SlideGeneratorService {
 
     slide.background = { color: "F9FAFB" };
 
-    // Image on left
     if (imageUrl) {
       slide.addImage({
         path: imageUrl,
@@ -194,7 +179,6 @@ export class SlideGeneratorService {
       });
     }
 
-    // Title
     slide.addText(title, {
       x: 4.2,
       y: 1.2,
@@ -206,10 +190,8 @@ export class SlideGeneratorService {
       fontFace: this.theme.fonts.heading,
     });
 
-    // Stats items
     let yPosition = 2.4;
     stats.forEach((stat, index) => {
-      // Stat value and percentage
       slide.addText(stat.value, {
         x: 4.2,
         y: yPosition,
@@ -221,7 +203,6 @@ export class SlideGeneratorService {
         fontFace: this.theme.fonts.heading,
       });
 
-      // Label
       slide.addText(stat.label, {
         x: 5.5,
         y: yPosition + 0.05,
@@ -233,7 +214,6 @@ export class SlideGeneratorService {
         fontFace: this.theme.fonts.heading,
       });
 
-      // Description
       slide.addText(stat.description, {
         x: 5.5,
         y: yPosition + 0.45,
@@ -251,8 +231,12 @@ export class SlideGeneratorService {
     this.slideIndex++;
   }
 
-  // Layout 3: Chart/Data Visualization Slide
-  createChartSlide(title: string, chartData: any[], subtitle?: string) {
+  // FIXED: Chart/Data Visualization Slide
+  createChartSlide(
+    title: string,
+    chartData: { label: string; value: number }[],
+    subtitle?: string
+  ) {
     const slide = this.pptx.addSlide();
 
     slide.background = { color: "FFFFFF" };
@@ -278,40 +262,68 @@ export class SlideGeneratorService {
       fontFace: this.theme.fonts.heading,
     });
 
-    // Chart data
-    const chartDataFormatted = chartData.map((item) => ({
-      name: item.label,
-      labels: [item?.label],
-      values: [item.value],
-    }));
+    // Validate and format chart data
+    if (!chartData || chartData.length === 0) {
+      slide.addText("No chart data available", {
+        x: 0.5,
+        y: 3,
+        w: 9,
+        h: 1,
+        fontSize: 24,
+        color: this.theme.colors.text,
+        align: "center",
+      });
+      this.slideIndex++;
+      return;
+    }
 
-    slide.addChart(this.pptx.ChartType.bar, chartDataFormatted, {
-      x: 0.5,
-      y: 1.5,
-      w: 9,
-      h: 4,
-      chartColors: [
-        this.theme.colors.primary,
-        this.theme.colors.primary + "CC",
-        this.theme.colors.primary + "99",
-        this.theme.colors.primary + "77",
-        this.theme.colors.primary + "55",
-        this.theme.colors.primary + "44",
-      ],
-      barDir: "col",
-      showValue: true,
-      valAxisMaxVal: 100,
-      catAxisLabelColor: this.theme.colors.text,
-      catAxisLabelFontSize: 11,
-      showCatAxisTitle: false,
-      valAxisLabelColor: this.theme.colors.textLight,
-      showLegend: false,
-      dataLabelFormatCode: '#0"%"',
-      dataLabelPosition: "inEnd",
-      dataLabelColor: "FFFFFF",
-      dataLabelFontBold: true,
-      dataLabelFontSize: 14,
-    });
+    try {
+      // CORRECT FORMAT: Single dataset with labels and values arrays
+      const chartDataFormatted = [
+        {
+          name: "Data",
+          labels: chartData.map((item) => String(item.label || "")),
+          values: chartData.map((item) => Number(item.value) || 0),
+        },
+      ];
+
+      console.log(
+        "Chart data formatted:",
+        JSON.stringify(chartDataFormatted, null, 2)
+      );
+
+      slide.addChart(this.pptx.ChartType.bar, chartDataFormatted, {
+        x: 0.5,
+        y: 1.5,
+        w: 9,
+        h: 4,
+        chartColors: [this.theme.colors.primary],
+        barDir: "col",
+        showValue: true,
+        valAxisMaxVal: 100,
+        catAxisLabelColor: this.theme.colors.text,
+        catAxisLabelFontSize: 11,
+        showCatAxisTitle: false,
+        valAxisLabelColor: this.theme.colors.textLight,
+        showLegend: false,
+        dataLabelFormatCode: "#0",
+        dataLabelPosition: "inEnd",
+        dataLabelColor: "FFFFFF",
+        dataLabelFontBold: true,
+        dataLabelFontSize: 14,
+      });
+    } catch (error) {
+      console.error("Chart creation error:", error);
+      slide.addText("Error creating chart", {
+        x: 0.5,
+        y: 3,
+        w: 9,
+        h: 1,
+        fontSize: 24,
+        color: "FF0000",
+        align: "center",
+      });
+    }
 
     // Subtitle/Source
     if (subtitle) {
@@ -330,7 +342,6 @@ export class SlideGeneratorService {
     this.slideIndex++;
   }
 
-  // Layout 4: Timeline/Process Flow Slide
   createTimelineSlide(
     title: string,
     subtitle: string,
@@ -340,7 +351,6 @@ export class SlideGeneratorService {
 
     slide.background = { color: "F9FAFB" };
 
-    // Purple accent corner
     slide.addShape(this.pptx.ShapeType.rect, {
       x: 8.5,
       y: 0,
@@ -349,7 +359,6 @@ export class SlideGeneratorService {
       fill: { color: this.theme.colors.primary },
     });
 
-    // Title
     slide.addText(title, {
       x: 0.5,
       y: 0.8,
@@ -361,26 +370,25 @@ export class SlideGeneratorService {
       fontFace: this.theme.fonts.heading,
     });
 
-    // Subtitle
-    slide.addText(subtitle, {
-      x: 0.5,
-      y: 1.5,
-      w: 9,
-      h: 0.5,
-      fontSize: 14,
-      color: this.theme.colors.textLight,
-      fontFace: this.theme.fonts.body,
-      lineSpacing: 20,
-    });
+    if (subtitle) {
+      slide.addText(subtitle, {
+        x: 0.5,
+        y: 1.5,
+        w: 9,
+        h: 0.5,
+        fontSize: 14,
+        color: this.theme.colors.textLight,
+        fontFace: this.theme.fonts.body,
+        lineSpacing: 20,
+      });
+    }
 
-    // Timeline arrows
     const colors = [this.theme.colors.primary, "#775D94", "#FF6B6B", "#FFB84D"];
 
     let xPosition = 0.5;
     const arrowWidth = 2.2;
 
     steps.forEach((step, index) => {
-      // Arrow shape
       slide.addShape(this.pptx.ShapeType.chevron, {
         x: xPosition,
         y: 2.8,
@@ -389,7 +397,6 @@ export class SlideGeneratorService {
         fill: { color: colors[index % colors.length] },
       });
 
-      // Step number
       slide.addText(step.number, {
         x: xPosition + 0.3,
         y: 3.05,
@@ -402,7 +409,6 @@ export class SlideGeneratorService {
         align: "center",
       });
 
-      // Step title
       slide.addText(step.title, {
         x: xPosition - 0.1,
         y: 4,
@@ -414,7 +420,6 @@ export class SlideGeneratorService {
         fontFace: this.theme.fonts.heading,
       });
 
-      // Step description
       slide.addText(step.description, {
         x: xPosition - 0.1,
         y: 4.5,
@@ -432,7 +437,6 @@ export class SlideGeneratorService {
     this.slideIndex++;
   }
 
-  // Layout 5: Closing/Call to Action Slide
   createClosingSlide(
     title: string,
     subtitle: string,
@@ -441,10 +445,8 @@ export class SlideGeneratorService {
   ) {
     const slide = this.pptx.addSlide();
 
-    // Purple background
     slide.background = { color: this.theme.colors.primary };
 
-    // Logo
     slide.addShape(this.pptx.ShapeType.ellipse, {
       x: 0.8,
       y: 1.2,
@@ -453,18 +455,6 @@ export class SlideGeneratorService {
       fill: { color: this.theme.colors.secondary },
     });
 
-    slide.addText("LOGO", {
-      x: 1.4,
-      y: 1.35,
-      w: 1.5,
-      h: 0.3,
-      fontSize: 20,
-      bold: true,
-      color: this.theme.colors.secondary,
-      fontFace: this.theme.fonts.heading,
-    });
-
-    // Main title
     slide.addText(title, {
       x: 0.8,
       y: 2.2,
@@ -477,8 +467,7 @@ export class SlideGeneratorService {
       lineSpacing: 48,
     });
 
-    // Subtitle
-    slide.addText(subtitle, {
+    slide.addText(subtitle || "", {
       x: 0.8,
       y: 3.6,
       w: 4.5,
@@ -489,7 +478,6 @@ export class SlideGeneratorService {
       lineSpacing: 24,
     });
 
-    // Contact info boxes
     if (contactInfo.email) {
       slide.addShape(this.pptx.ShapeType.rect, {
         x: 0.8,
@@ -530,7 +518,6 @@ export class SlideGeneratorService {
       });
     }
 
-    // Image (right side)
     if (imageUrl) {
       slide.addImage({
         path: imageUrl,
@@ -545,66 +532,98 @@ export class SlideGeneratorService {
     this.slideIndex++;
   }
 
-  // Main generation method with intelligent layout selection
+  // UPDATED: Main generation method with validation
   async generateFromContent(slides: SlideContent[]): Promise<Buffer> {
     for (let i = 0; i < slides.length; i++) {
       const slideData = slides[i];
 
-      switch (slideData.type) {
-        case "title":
-          this.createTitleSlide(
-            slideData.title,
-            slideData.content[0],
-            slideData.imageUrl
-          );
-          break;
+      console.log(
+        `Processing slide ${i + 1}: ${slideData.title} (${slideData.type})`
+      );
 
-        case "stats":
-          if (slideData.stats) {
-            this.createStatsSlide(
+      try {
+        switch (slideData.type) {
+          case "title":
+            this.createTitleSlide(
               slideData.title,
-              slideData.stats,
+              slideData.content[0] || "",
               slideData.imageUrl
             );
-          }
-          break;
+            break;
 
-        case "content":
-          if (slideData.chartData) {
-            this.createChartSlide(
+          case "stats":
+            if (slideData.stats && slideData.stats.length > 0) {
+              this.createStatsSlide(
+                slideData.title,
+                slideData.stats,
+                slideData.imageUrl
+              );
+            } else {
+              this.createContentSlide(slideData.title, slideData.content);
+            }
+            break;
+
+          case "chart":
+            if (slideData.chartData && slideData.chartData.length > 0) {
+              // Validate chart data
+              const validChartData = slideData.chartData.filter(
+                (item) =>
+                  item && item.label !== undefined && item.value !== undefined
+              );
+
+              if (validChartData.length > 0) {
+                this.createChartSlide(
+                  slideData.title,
+                  validChartData,
+                  slideData.content[0]
+                );
+              } else {
+                console.warn(
+                  `Chart slide "${slideData.title}" has no valid data, using content slide`
+                );
+                this.createContentSlide(slideData.title, slideData.content);
+              }
+            } else {
+              this.createContentSlide(slideData.title, slideData.content);
+            }
+            break;
+
+          case "timeline":
+            const steps = slideData.content.map((item, idx) => {
+              const parts = item.split(":");
+              return {
+                number: (idx + 1).toString(),
+                title: parts[0] || item,
+                description: parts[1] || "",
+              };
+            });
+            this.createTimelineSlide(slideData.title, "", steps);
+            break;
+
+          case "closing":
+            this.createClosingSlide(
               slideData.title,
-              slideData.chartData,
-              slideData.content[0]
+              slideData.content[0] || "",
+              {
+                email: "hello@example.com",
+                website: "www.yourwebsite.com",
+              },
+              slideData.imageUrl
             );
-          } else {
-            // Default content slide
+            break;
+
+          default:
             this.createContentSlide(slideData.title, slideData.content);
-          }
-          break;
-
-        case "timeline":
-          const steps = slideData.content.map((item, idx) => ({
-            number: (idx + 1).toString(),
-            title: item.split(":")[0],
-            description: item.split(":")[1] || "",
-          }));
-          this.createTimelineSlide(slideData.title, "", steps);
-          break;
-
-        case "closing":
-          this.createClosingSlide(
-            slideData.title,
-            slideData.content[0],
-            {
-              email: "hello@example.com",
-              website: "www.yourwebsite.com",
-            },
-            slideData.imageUrl
-          );
-          break;
-
-        default:
-          this.createContentSlide(slideData.title, slideData.content);
+        }
+      } catch (error) {
+        console.error(`Error creating slide "${slideData.title}":`, error);
+        // Create fallback slide
+        this.createContentSlide(
+          slideData.title,
+          slideData.content.length > 0
+            ? slideData.content
+            : ["Error loading slide content"]
+        );
       }
     }
 
@@ -618,7 +637,6 @@ export class SlideGeneratorService {
 
     slide.background = { color: "F9FAFB" };
 
-    // Purple accent corner
     slide.addShape(this.pptx.ShapeType.rect, {
       x: 8.5,
       y: 0,
@@ -627,7 +645,6 @@ export class SlideGeneratorService {
       fill: { color: this.theme.colors.primary },
     });
 
-    // Title
     slide.addText(title, {
       x: 0.5,
       y: 0.8,
@@ -639,8 +656,10 @@ export class SlideGeneratorService {
       fontFace: this.theme.fonts.heading,
     });
 
-    // Content
-    slide.addText(bulletPoints.join("\n"), {
+    const content =
+      bulletPoints.length > 0 ? bulletPoints : ["No content available"];
+
+    slide.addText(content, {
       x: 1,
       y: 2,
       w: 8.5,
@@ -648,7 +667,7 @@ export class SlideGeneratorService {
       fontSize: 18,
       color: this.theme.colors.text,
       fontFace: this.theme.fonts.body,
-      bullet: { type: "bullet" },
+      bullet: { type: "bullet", color: this.theme.colors.primary },
       lineSpacing: 28,
     });
   }

@@ -123,7 +123,7 @@ export const updateDraftThumbnail = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const { thumbnail } = req.body; // Base64 or Cloudinary URL
+    const { thumbnail } = req.body;
     const userId = req.user?.id;
 
     if (!userId) {
@@ -143,7 +143,6 @@ export const updateDraftThumbnail = async (
       return;
     }
 
-    // If it's a base64 string, upload to Cloudinary
     let thumbnailUrl = thumbnail;
 
     if (thumbnail.startsWith("data:image")) {

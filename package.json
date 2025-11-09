@@ -8,9 +8,9 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "dev": "tsx api/index.ts",
+    "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
-    "seed:themes": "ts-node api/seeds/seedThemes.ts"
+    "seed:themes": "ts-node src/seeds/seedThemes.ts"
   },
   "engines": {
     "node": "20"
