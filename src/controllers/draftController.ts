@@ -256,264 +256,260 @@ export const updateDraft = async (
   }
 };
 
-// export const updateSlide = async (
-//   req: AuthRequest,
-//   res: Response
-// ): Promise<void> => {
-//   try {
-//     const { id, slideId } = req.params;
-//     const slideUpdate = req.body;
-//     const userId = req.user?.id;
+export const updateSlide = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id, slideId } = req.params;
+    const slideUpdate = req.body;
+    const userId = req.user?.id;
 
-//     if (!userId) {
-//       res.status(401).json({ message: "Unauthorized" });
-//       return;
-//     }
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
 
-//     const draft = await PresentationDraft.findOne({ _id: id, userId });
+    const draft = await PresentationDraft.findOne({ _id: id, userId });
 
-//     if (!draft) {
-//       res.status(404).json({ message: "Draft not found" });
-//       return;
-//     }
+    if (!draft) {
+      res.status(404).json({ message: "Draft not found" });
+      return;
+    }
 
-//     // Find and update slide
-//     const slideIndex = draft.slides.findIndex((s) => s.id === slideId);
+    // Find and update slide
+    const slideIndex = draft.slides.findIndex((s) => s.id === slideId);
 
-//     if (slideIndex === -1) {
-//       res.status(404).json({ message: "Slide not found" });
-//       return;
-//     }
+    if (slideIndex === -1) {
+      res.status(404).json({ message: "Slide not found" });
+      return;
+    }
 
-//     draft.slides[slideIndex] = { ...draft.slides[slideIndex], ...slideUpdate };
-//     draft.lastEditedAt = new Date();
+    draft.slides[slideIndex] = { ...draft.slides[slideIndex], ...slideUpdate };
+    draft.lastEditedAt = new Date();
 
-//     await draft.save();
+    await draft.save();
 
-//     res.status(200).json({
-//       success: true,
-//       message: "Slide updated successfully",
-//       slide: draft.slides[slideIndex],
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error", error });
-//   }
-// };
+    res.status(200).json({
+      success: true,
+      message: "Slide updated successfully",
+      slide: draft.slides[slideIndex],
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
 
-// Add new slide
-// export const addSlide = async (
-//   req: AuthRequest,
-//   res: Response
-// ): Promise<void> => {
-//   try {
-//     const { id } = req.params;
-//     const { position, type } = req.body;
-//     const userId = req.user?.id;
+export const addSlide = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { position, type } = req.body;
+    const userId = req.user?.id;
 
-//     if (!userId) {
-//       res.status(401).json({ message: "Unauthorized" });
-//       return;
-//     }
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
 
-//     const draft = await PresentationDraft.findOne({ _id: id, userId });
+    const draft = await PresentationDraft.findOne({ _id: id, userId });
 
-//     if (!draft) {
-//       res.status(404).json({ message: "Draft not found" });
-//       return;
-//     }
+    if (!draft) {
+      res.status(404).json({ message: "Draft not found" });
+      return;
+    }
 
-//     // Create new slide
-//     const newSlide: ISlide = {
-//       id: uuidv4(),
-//       type: type || "content",
-//       title: "New Slide",
-//       content: ["Add your content here"],
-//       position: position ?? draft.slides.length,
-//       layout: "default",
-//     };
+    // Create new slide
+    const newSlide: ISlide = {
+      id: uuidv4(),
+      type: type || "content",
+      title: "New Slide",
+      content: ["Add your content here"],
+      position: position ?? draft.slides.length,
+      layout: "default",
+    };
 
-//     // Insert at position
-//     draft.slides.splice(newSlide.position, 0, newSlide);
+    // Insert at position
+    draft.slides.splice(newSlide.position, 0, newSlide);
 
-//     // Update positions
-//     draft.slides.forEach((slide, index) => {
-//       slide.position = index;
-//     });
+    // Update positions
+    draft.slides.forEach((slide, index) => {
+      slide.position = index;
+    });
 
-//     draft.lastEditedAt = new Date();
-//     await draft.save();
+    draft.lastEditedAt = new Date();
+    await draft.save();
 
-//     res.status(201).json({
-//       success: true,
-//       message: "Slide added successfully",
-//       slide: newSlide,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error", error });
-//   }
-// };
+    res.status(201).json({
+      success: true,
+      message: "Slide added successfully",
+      slide: newSlide,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
 
-// Delete slide
-// export const deleteSlide = async (
-//   req: AuthRequest,
-//   res: Response
-// ): Promise<void> => {
-//   try {
-//     const { id, slideId } = req.params;
-//     const userId = req.user?.id;
+export const deleteSlide = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id, slideId } = req.params;
+    const userId = req.user?.id;
 
-//     if (!userId) {
-//       res.status(401).json({ message: "Unauthorized" });
-//       return;
-//     }
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
 
-//     const draft = await PresentationDraft.findOne({ _id: id, userId });
+    const draft = await PresentationDraft.findOne({ _id: id, userId });
 
-//     if (!draft) {
-//       res.status(404).json({ message: "Draft not found" });
-//       return;
-//     }
+    if (!draft) {
+      res.status(404).json({ message: "Draft not found" });
+      return;
+    }
 
-//     // Remove slide
-//     draft.slides = draft.slides.filter((s) => s.id !== slideId);
+    // Remove slide
+    draft.slides = draft.slides.filter((s) => s.id !== slideId);
 
-//     // Update positions
-//     draft.slides.forEach((slide, index) => {
-//       slide.position = index;
-//     });
+    // Update positions
+    draft.slides.forEach((slide, index) => {
+      slide.position = index;
+    });
 
-//     draft.lastEditedAt = new Date();
-//     await draft.save();
+    draft.lastEditedAt = new Date();
+    await draft.save();
 
-//     res.status(200).json({
-//       success: true,
-//       message: "Slide deleted successfully",
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error", error });
-//   }
-// };
+    res.status(200).json({
+      success: true,
+      message: "Slide deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
 
-// Reorder slides
-// export const reorderSlides = async (
-//   req: AuthRequest,
-//   res: Response
-// ): Promise<void> => {
-//   try {
-//     const { id } = req.params;
-//     const { slideOrder } = req.body; // Array of slide IDs in new order
-//     const userId = req.user?.id;
+export const reorderSlides = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { slideOrder } = req.body; // Array of slide IDs in new order
+    const userId = req.user?.id;
 
-//     if (!userId) {
-//       res.status(401).json({ message: "Unauthorized" });
-//       return;
-//     }
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
 
-//     const draft = await PresentationDraft.findOne({ _id: id, userId });
+    const draft = await PresentationDraft.findOne({ _id: id, userId });
 
-//     if (!draft) {
-//       res.status(404).json({ message: "Draft not found" });
-//       return;
-//     }
+    if (!draft) {
+      res.status(404).json({ message: "Draft not found" });
+      return;
+    }
 
-//     // Reorder slides
-//     const reorderedSlides: ISlide[] = [];
-//     slideOrder.forEach((slideId: string, index: number) => {
-//       const slide = draft.slides.find((s) => s.id === slideId);
-//       if (slide) {
-//         slide.position = index;
-//         reorderedSlides.push(slide);
-//       }
-//     });
+    // Reorder slides
+    const reorderedSlides: ISlide[] = [];
+    slideOrder.forEach((slideId: string, index: number) => {
+      const slide = draft.slides.find((s) => s.id === slideId);
+      if (slide) {
+        slide.position = index;
+        reorderedSlides.push(slide);
+      }
+    });
 
-//     draft.slides = reorderedSlides;
-//     draft.lastEditedAt = new Date();
-//     await draft.save();
+    draft.slides = reorderedSlides;
+    draft.lastEditedAt = new Date();
+    await draft.save();
 
-//     res.status(200).json({
-//       success: true,
-//       message: "Slides reordered successfully",
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error", error });
-//   }
-// };
+    res.status(200).json({
+      success: true,
+      message: "Slides reordered successfully",
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
 
-// Delete draft
-// export const deleteDraft = async (
-//   req: AuthRequest,
-//   res: Response
-// ): Promise<void> => {
-//   try {
-//     const { id } = req.params;
-//     const userId = req.user?.id;
+export const deleteDraft = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
 
-//     if (!userId) {
-//       res.status(401).json({ message: "Unauthorized" });
-//       return;
-//     }
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
 
-//     const result = await PresentationDraft.deleteOne({ _id: id, userId });
+    const result = await PresentationDraft.deleteOne({ _id: id, userId });
 
-//     if (result.deletedCount === 0) {
-//       res.status(404).json({ message: "Draft not found" });
-//       return;
-//     }
+    if (result.deletedCount === 0) {
+      res.status(404).json({ message: "Draft not found" });
+      return;
+    }
 
-//     res.status(200).json({
-//       success: true,
-//       message: "Draft deleted successfully",
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error", error });
-//   }
-// };
+    res.status(200).json({
+      success: true,
+      message: "Draft deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
 
-// export const duplicateDraft = async (
-//   req: AuthRequest,
-//   res: Response
-// ): Promise<void> => {
-//   try {
-//     const { id } = req.params;
-//     const userId = req.user?.id;
+export const duplicateDraft = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
 
-//     if (!userId) {
-//       res.status(401).json({ message: "Unauthorized" });
-//       return;
-//     }
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
 
-//     const original = await PresentationDraft.findOne({ _id: id, userId });
+    const original = await PresentationDraft.findOne({ _id: id, userId });
 
-//     if (!original) {
-//       res.status(404).json({ message: "Draft not found" });
-//       return;
-//     }
+    if (!original) {
+      res.status(404).json({ message: "Draft not found" });
+      return;
+    }
 
-//     // Create duplicate with new IDs
-//     const duplicate = await PresentationDraft.create({
-//       userId: original.userId,
-//       title: `${original.title} (Copy)`,
-//       topic: original.topic,
-//       language: original.language,
-//       themeSlug: original.themeSlug,
-//       slides: original.slides.map((slide) => ({
-//         ...slide,
-//         id: uuidv4(),
-//       })),
-//       status: "draft",
-//       lastEditedAt: new Date(),
-//     });
+    // Create duplicate with new IDs
+    const duplicate = await PresentationDraft.create({
+      userId: original.userId,
+      title: `${original.title} (Copy)`,
+      topic: original.topic,
+      language: original.language,
+      themeSlug: original.themeSlug,
+      slides: original.slides.map((slide) => ({
+        ...slide,
+        id: uuidv4(),
+      })),
+      status: "draft",
+      lastEditedAt: new Date(),
+    });
 
-//     res.status(201).json({
-//       success: true,
-//       message: "Draft duplicated successfully",
-//       draft: {
-//         id: duplicate._id,
-//         title: duplicate.title,
-//         slideCount: duplicate.slides.length,
-//       },
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error", error });
-//   }
-// };
+    res.status(201).json({
+      success: true,
+      message: "Draft duplicated successfully",
+      draft: {
+        id: duplicate._id,
+        title: duplicate.title,
+        slideCount: duplicate.slides.length,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
