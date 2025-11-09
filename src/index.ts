@@ -54,7 +54,7 @@ const startServer = async () => {
 
     const count = await Theme.countDocuments();
     if (count === 0) {
-      console.log("🌱 Seeding themes...");
+      console.log("🌱 Seeding themes..");
       await seedThemes();
     } else {
       console.log("🧹 Clearing old themes...");
