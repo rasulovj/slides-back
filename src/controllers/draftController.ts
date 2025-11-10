@@ -6,14 +6,12 @@ import { AIService } from "../services/aiService.js";
 import { v4 as uuidv4 } from "uuid";
 import cloudinary from "../config/cloudinary.js";
 
-const aiService = new AIService();
-
 export const createDraft = async (
   req: AuthRequest,
   res: Response
 ): Promise<void> => {
   try {
-    const { topic, language, themeSlug } = req.body;
+    const { topic, language, slideCount, themeSlug } = req.body;
     const userId = req.user?.id;
 
     if (!userId) {
@@ -21,33 +19,41 @@ export const createDraft = async (
       return;
     }
 
-    // Validate theme
-    const theme = await Theme.findOne({ slug: themeSlug });
-    if (!theme) {
-      res.status(404).json({ message: "Theme not found" });
+    if (!topic || !language || !themeSlug) {
+      res.status(400).json({
+        message: "Missing required fields: topic, language, themeSlug",
+      });
       return;
     }
 
-    // Generate content with AI
     console.log(`Generating draft for: ${topic}`);
-    const slideContent = await aiService.generateSlideContent(topic, language);
+    const aiService = new AIService();
+    const presentationStructure = await aiService.generatePresentationStructure(
+      topic,
+      language,
+      slideCount
+    );
 
-    // Convert to draft format
-    const slides: ISlide[] = slideContent.slides.map((slide, index) => ({
-      id: uuidv4(),
-      type: slide.type,
-      title: slide.title,
-      content: slide.content,
-      position: index,
-      layout: "default",
-      stats: slide.stats,
-      chartData: slide.chartData,
-    }));
+    const slides: ISlide[] = presentationStructure.slides.map(
+      (slide, index) => ({
+        id: uuidv4(),
+        type: slide.type,
+        title: slide.title,
+        content: slide.content,
+        position: index,
+        layout: slide.layout || "default",
+        stats: slide.stats,
+        chartData: slide.chartData,
+        quote: slide.quote,
+        imagePrompt: slide.imagePrompt,
+        notes: slide.notes,
+      })
+    );
 
-    // Create draft
     const draft = await PresentationDraft.create({
       userId,
-      title: slideContent.title,
+      title: presentationStructure.title,
+      subtitle: presentationStructure.subtitle,
       topic,
       language,
       themeSlug,
@@ -218,7 +224,7 @@ export const updateDraft = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const { title, slides } = req.body;
+    const { title, slides, themeSlug } = req.body;
     const userId = req.user?.id;
 
     if (!userId) {
@@ -233,9 +239,9 @@ export const updateDraft = async (
       return;
     }
 
-    // Update fields
     if (title) draft.title = title;
     if (slides) draft.slides = slides;
+    if (themeSlug) draft.themeSlug = themeSlug;
     draft.lastEditedAt = new Date();
 
     await draft.save();
@@ -246,11 +252,13 @@ export const updateDraft = async (
       draft: {
         id: draft._id,
         title: draft.title,
+        themeSlug: draft.themeSlug,
         slideCount: draft.slides.length,
         lastEditedAt: draft.lastEditedAt,
       },
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Server error", error });
   }
 };
@@ -484,7 +492,6 @@ export const duplicateDraft = async (
       return;
     }
 
-    // Create duplicate with new IDs
     const duplicate = await PresentationDraft.create({
       userId: original.userId,
       title: `${original.title} (Copy)`,

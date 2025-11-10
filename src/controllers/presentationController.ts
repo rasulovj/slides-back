@@ -5,7 +5,7 @@ import User from "../models/user.js";
 import Theme from "../models/theme.js";
 import Presentation from "../models/presentation.js";
 import PresentationDraft from "../models/presentationDraft.js";
-import { SlideGeneratorService } from "../services/slideGenerator.js";
+// import { SlideGeneratorService } from "../services/slideGenerator.js";
 import path from "path";
 import fs from "fs/promises";
 import { fileURLToPath } from "url";
@@ -64,8 +64,8 @@ export const generateFromDraft = async (
 
     console.log(`Generating presentation from draft: ${draft.title}`);
 
-    const slideGenerator = new SlideGeneratorService(theme);
-    const pptxBuffer = await slideGenerator.generateFromContent(draft.slides);
+    // const slideGenerator = new SlideGeneratorService(theme);
+    // const pptxBuffer = await slideGenerator.generateFromContent(draft.slides);
 
     // Option 1: Upload to Cloudinary (Recommended for production)
     const filename = `presentation-${Date.now()}.pptx`;
@@ -85,7 +85,7 @@ export const generateFromDraft = async (
             else resolve(result);
           }
         );
-        uploadStream.end(pptxBuffer);
+        // uploadStream.end(pptxBuffer);
       });
 
       const presentation = await Presentation.create({
@@ -125,7 +125,7 @@ export const generateFromDraft = async (
       const uploadDir = path.join(__dirname, "../../uploads");
       await fs.mkdir(uploadDir, { recursive: true });
       const filepath = path.join(uploadDir, filename);
-      await fs.writeFile(filepath, pptxBuffer);
+      // await fs.writeFile(filepath, pptxBuffer);
 
       const presentation = await Presentation.create({
         userId: user._id,

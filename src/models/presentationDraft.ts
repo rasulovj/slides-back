@@ -9,30 +9,41 @@ export interface ISlide {
     | "stats"
     | "timeline"
     | "chart"
+    | "twoColumn"
+    | "quote"
     | "closing"
     | "image";
   title: string;
+  subtitle?: string;
   content: string[];
   position: number;
-  layout: string;
+  layout?: "default" | "image-left" | "image-right" | "centered" | "split";
   backgroundColor?: string;
   textColor?: string;
   stats?: {
     label: string;
     value: string;
     description: string;
+    icon?: string;
   }[];
   chartData?: {
     label: string;
     value: number;
+    color?: string;
   }[];
+  quote?: {
+    text: string;
+    author: string;
+  };
   imageUrl?: string;
+  imagePrompt?: string;
   notes?: string;
 }
 
 export interface IPresentationDraft extends Document {
   userId: Types.ObjectId;
   title: string;
+  subtitle?: string;
   topic: string;
   language: string;
   themeSlug: string;
@@ -46,7 +57,11 @@ export interface IPresentationDraft extends Document {
 
 const slideSchema = new Schema<ISlide>(
   {
-    id: { type: String, required: true },
+    id: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     type: {
       type: String,
       enum: [
@@ -55,15 +70,32 @@ const slideSchema = new Schema<ISlide>(
         "stats",
         "timeline",
         "chart",
+        "twoColumn",
+        "quote",
         "closing",
         "image",
       ],
       required: true,
     },
-    title: { type: String, required: true },
-    content: [{ type: String }],
-    position: { type: Number, required: true },
-    layout: { type: String, default: "default" },
+    title: {
+      type: String,
+      required: true,
+    },
+    subtitle: String,
+    content: [
+      {
+        type: String,
+      },
+    ],
+    position: {
+      type: Number,
+      required: true,
+    },
+    layout: {
+      type: String,
+      enum: ["default", "image-left", "image-right", "centered", "split"],
+      default: "default",
+    },
     backgroundColor: String,
     textColor: String,
     stats: [
@@ -71,15 +103,22 @@ const slideSchema = new Schema<ISlide>(
         label: String,
         value: String,
         description: String,
+        icon: String,
       },
     ],
     chartData: [
       {
         label: String,
         value: Number,
+        color: String,
       },
     ],
+    quote: {
+      text: String,
+      author: String,
+    },
     imageUrl: String,
+    imagePrompt: String,
     notes: String,
   },
   { _id: false }
@@ -96,21 +135,31 @@ const presentationDraftSchema = new Schema<IPresentationDraft>(
     title: {
       type: String,
       required: true,
+      trim: true,
+    },
+    subtitle: {
+      type: String,
+      trim: true,
     },
     topic: {
       type: String,
       required: true,
+      trim: true,
     },
     language: {
       type: String,
       required: true,
       default: "en",
+      lowercase: true,
     },
     themeSlug: {
       type: String,
       required: true,
     },
-    slides: [slideSchema],
+    slides: {
+      type: [slideSchema],
+      default: [],
+    },
     status: {
       type: String,
       enum: ["draft", "generating", "completed"],
@@ -119,7 +168,9 @@ const presentationDraftSchema = new Schema<IPresentationDraft>(
     thumbnail: {
       type: String,
       default: null,
+      sparse: true,
     },
+
     lastEditedAt: {
       type: Date,
       default: Date.now,
@@ -130,8 +181,14 @@ const presentationDraftSchema = new Schema<IPresentationDraft>(
   }
 );
 
-// Index for faster queries
 presentationDraftSchema.index({ userId: 1, updatedAt: -1 });
+presentationDraftSchema.index({ userId: 1, status: 1 });
+presentationDraftSchema.index({ createdAt: -1 });
+
+presentationDraftSchema.pre("save", function (next) {
+  this.lastEditedAt = new Date();
+  next();
+});
 
 export default mongoose.model<IPresentationDraft>(
   "PresentationDraft",
