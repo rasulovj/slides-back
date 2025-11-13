@@ -14,6 +14,7 @@ import userRoute from "./routes/userRoute.js";
 import Theme from "./models/theme.js";
 import { seedThemes } from "./seeds/seedThemes.js";
 import draftRoutes from "./routes/draftRoute.js";
+import converRoute from "./routes/converRoute.js";
 
 dotenv.config();
 
@@ -40,7 +41,8 @@ app.use(
 
 app.use(express.json());
 app.use(morgan("dev"));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 const uploadsPath = path.join(__dirname, "../uploads");
 await fs.mkdir(uploadsPath, { recursive: true });
@@ -69,10 +71,30 @@ const startServer = async () => {
     app.use("/api/presentations", presentationRoutes);
     app.use("/api/users", userRoute);
     app.use("/api/drafts", draftRoutes);
+    app.use("/api/export", converRoute);
 
     app.get("/health", (req, res) => {
       res.status(200).json({ status: "OK", message: "Server is running" });
     });
+
+    app.use(
+      (
+        err: any,
+        req: express.Request,
+        res: express.Response,
+        next: express.NextFunction
+      ) => {
+        if (err.name === "MulterError") {
+          console.error("Multer error:", err);
+          return res.status(400).json({
+            message: "File upload error",
+            error: err.message,
+            code: err.code,
+          });
+        }
+        next(err);
+      }
+    );
 
     const PORT = process.env.PORT || 8080;
     app.listen(PORT, () => {

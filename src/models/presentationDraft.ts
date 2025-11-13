@@ -11,7 +11,7 @@ export interface ISlide {
     | "comparison"
     | "cards"
     | "stats"
-    | "chart"
+    // | "chart"
     | "quote"
     | "closing";
   title: string;
@@ -27,11 +27,11 @@ export interface ISlide {
     description: string;
     icon?: string;
   }[];
-  chartData?: {
-    label: string;
-    value: number;
-    color?: string;
-  }[];
+  // chartData?: {
+  //   label: string;
+  //   value: number;
+  //   color?: string;
+  // }[];
   quote?: {
     text: string;
     author: string;
@@ -108,13 +108,13 @@ const slideSchema = new Schema<ISlide>(
         icon: String,
       },
     ],
-    chartData: [
-      {
-        label: String,
-        value: Number,
-        color: String,
-      },
-    ],
+    // chartData: [
+    //   {
+    //     label: String,
+    //     value: Number,
+    //     color: String,
+    //   },
+    // ],
     quote: {
       text: String,
       author: String,

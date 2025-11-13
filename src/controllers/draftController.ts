@@ -48,7 +48,7 @@ export const createDraft = async (
         position: index,
         layout: slide.layout || "default",
         stats: slide.stats || [],
-        chartData: slide.chartData || [],
+        // chartData: slide.chartData || [],
         quote: slide.quote,
         notes: slide.notes,
         backgroundColor: undefined,
