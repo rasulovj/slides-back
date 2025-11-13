@@ -40,7 +40,7 @@ export const createDraft = async (
         type: slide.type,
         title: slide.title,
         subtitle: slide.subtitle,
-        default: Array.isArray(slide.content)
+        content: Array.isArray(slide.content)
           ? slide.content.map((item) =>
               typeof item === "object" ? JSON.stringify(item) : String(item)
             )
