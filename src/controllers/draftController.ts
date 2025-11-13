@@ -1,7 +1,6 @@
 import { Response } from "express";
 import { AuthRequest } from "../types/index.js";
 import PresentationDraft, { ISlide } from "../models/presentationDraft.js";
-import Theme from "../models/theme.js";
 import { AIService } from "../services/aiService.js";
 import { v4 as uuidv4 } from "uuid";
 import cloudinary from "../config/cloudinary.js";
@@ -26,8 +25,9 @@ export const createDraft = async (
       return;
     }
 
-    console.log(`Generating draft for: ${topic}`);
+    console.log(`🧠 Generating presentation for topic: ${topic}`);
     const aiService = new AIService();
+
     const presentationStructure = await aiService.generatePresentationStructure(
       topic,
       language,
@@ -39,14 +39,20 @@ export const createDraft = async (
         id: uuidv4(),
         type: slide.type,
         title: slide.title,
-        content: slide.content,
+        subtitle: slide.subtitle,
+        content: Array.isArray(slide.content)
+          ? slide.content.map((item) =>
+              typeof item === "object" ? JSON.stringify(item) : String(item)
+            )
+          : [],
         position: index,
         layout: slide.layout || "default",
-        stats: slide.stats,
-        chartData: slide.chartData,
+        stats: slide.stats || [],
+        chartData: slide.chartData || [],
         quote: slide.quote,
-        imagePrompt: slide.imagePrompt,
         notes: slide.notes,
+        backgroundColor: undefined,
+        textColor: undefined,
       })
     );
 
@@ -58,6 +64,7 @@ export const createDraft = async (
       language,
       themeSlug,
       slides,
+      slidePlan: presentationStructure.plan || [],
       status: "draft",
       lastEditedAt: new Date(),
       thumbnail: null,
@@ -68,21 +75,25 @@ export const createDraft = async (
       draft: {
         id: draft._id,
         title: draft.title,
+        subtitle: draft.subtitle,
+        topic: draft.topic,
+        language: draft.language,
         slideCount: draft.slides.length,
         themeSlug: draft.themeSlug,
+        slidePlan: draft.slidePlan,
         thumbnail: draft.thumbnail,
+        status: draft.status,
         createdAt: draft.createdAt,
       },
     });
   } catch (error: any) {
-    console.error("Draft creation error:", error);
+    console.error("❌ Draft creation error:", error);
     res.status(500).json({
       message: "Failed to create draft",
       error: error.message,
     });
   }
 };
-
 // Get user's drafts
 export const getUserDrafts = async (
   req: AuthRequest,

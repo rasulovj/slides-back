@@ -1,26 +1,20 @@
-// src/controllers/presentationController.ts
 import { Response } from "express";
 import { AuthRequest } from "../types/index.js";
 import User from "../models/user.js";
 import Theme from "../models/theme.js";
 import Presentation from "../models/presentation.js";
 import PresentationDraft from "../models/presentationDraft.js";
-// import { SlideGeneratorService } from "../services/slideGenerator.js";
-import path from "path";
-import fs from "fs/promises";
-import { fileURLToPath } from "url";
 import cloudinary from "../config/cloudinary.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { Readable } from "stream";
+import { generatePPTXBuffer } from "../services/slideGenerator.js";
 
 export const generateFromDraft = async (
   req: AuthRequest,
   res: Response
 ): Promise<void> => {
   try {
-    const { draftId } = req.params;
     const userId = req.user?.id;
+    const { draftId, themeSlug } = req.body;
 
     if (!userId) {
       res.status(401).json({ message: "Unauthorized" });
@@ -33,6 +27,7 @@ export const generateFromDraft = async (
       return;
     }
 
+    // Check free tier limit
     if (!user.isPremium && user.presentationsCount >= user.freeLimit) {
       res.status(403).json({
         message: "Free limit reached. Please upgrade to premium.",
@@ -40,18 +35,21 @@ export const generateFromDraft = async (
       return;
     }
 
+    // Fetch draft with latest content
     const draft = await PresentationDraft.findOne({ _id: draftId, userId });
     if (!draft) {
       res.status(404).json({ message: "Draft not found" });
       return;
     }
 
-    const theme = await Theme.findOne({ slug: draft.themeSlug });
+    // Fetch theme from DB with layouts
+    const theme = await Theme.findOne({ id: themeSlug || draft.themeSlug });
     if (!theme) {
       res.status(404).json({ message: "Theme not found" });
       return;
     }
 
+    // Check premium theme
     if (theme.isPremium && !user.isPremium) {
       res.status(403).json({
         message: "This theme requires premium subscription",
@@ -62,48 +60,67 @@ export const generateFromDraft = async (
     draft.status = "generating";
     await draft.save();
 
-    console.log(`Generating presentation from draft: ${draft.title}`);
+    console.log(`🚀 Generating PPTX: ${draft.title}`);
+    console.log(`📝 Theme: ${theme.id}`);
+    console.log(`📊 Slides: ${draft.slides.length}`);
 
-    // const slideGenerator = new SlideGeneratorService(theme);
-    // const pptxBuffer = await slideGenerator.generateFromContent(draft.slides);
-
-    // Option 1: Upload to Cloudinary (Recommended for production)
     const filename = `presentation-${Date.now()}.pptx`;
 
     try {
-      // Upload buffer to Cloudinary
+      // ✅ Generate PPTX using draft slides + DB theme layouts
+      const pptxBuffer = await generatePPTXBuffer(draft.slides, theme);
+      console.log(`📄 Buffer created: ${pptxBuffer.byteLength} bytes`);
+
+      // Upload to Cloudinary
       const uploadResult = await new Promise<any>((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           {
             folder: "presentations",
             public_id: filename.replace(".pptx", ""),
-            resource_type: "raw", // Important: use 'raw' for non-image files
+            resource_type: "raw",
             format: "pptx",
           },
           (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
+            if (error) {
+              console.error("❌ Cloudinary error:", error);
+              reject(error);
+            } else {
+              console.log("✅ Uploaded to Cloudinary");
+              resolve(result);
+            }
           }
         );
-        // uploadStream.end(pptxBuffer);
+
+        const readable = new Readable();
+        readable.push(pptxBuffer);
+        readable.push(null);
+        readable.pipe(uploadStream);
       });
 
+      // Save presentation record
       const presentation = await Presentation.create({
         userId: user._id,
         title: draft.title,
         topic: draft.topic,
         language: draft.language,
-        theme: draft.themeSlug,
-        fileUrl: uploadResult.secure_url, // Cloudinary URL
+        theme: theme.id,
+        fileUrl: uploadResult.secure_url,
         fileFormat: "pptx",
         slideCount: draft.slides.length,
+        cloudinaryId: uploadResult.public_id,
+        fileSize: uploadResult.bytes,
+        exportedAt: new Date(),
       });
 
+      // Update draft status
       draft.status = "completed";
       await draft.save();
 
-      user.presentationsCount += 1;
+      // Increment user counter
+      user.presentationsCount = (user.presentationsCount || 0) + 1;
       await user.save();
+
+      console.log(`✅ Presentation created: ${presentation._id}`);
 
       res.status(201).json({
         success: true,
@@ -112,53 +129,22 @@ export const generateFromDraft = async (
           title: presentation.title,
           slideCount: presentation.slideCount,
           createdAt: presentation.createdAt,
+          theme: presentation.theme,
         },
-        downloadUrl: uploadResult.secure_url, // Direct Cloudinary download URL
+        downloadUrl: uploadResult.secure_url,
       });
-    } catch (uploadError) {
-      console.error(
-        "Cloudinary upload failed, falling back to local storage:",
-        uploadError
-      );
+    } catch (error: any) {
+      console.error("⚠️  Generation error:", error.message);
 
-      // Option 2: Fallback to local storage
-      const uploadDir = path.join(__dirname, "../../uploads");
-      await fs.mkdir(uploadDir, { recursive: true });
-      const filepath = path.join(uploadDir, filename);
-      // await fs.writeFile(filepath, pptxBuffer);
-
-      const presentation = await Presentation.create({
-        userId: user._id,
-        title: draft.title,
-        topic: draft.topic,
-        language: draft.language,
-        theme: draft.themeSlug,
-        fileUrl: `/uploads/${filename}`,
-        fileFormat: "pptx",
-        slideCount: draft.slides.length,
-      });
-
-      draft.status = "completed";
+      // draft.status = "failed";
       await draft.save();
 
-      user.presentationsCount += 1;
-      await user.save();
-
-      res.status(201).json({
-        success: true,
-        presentation: {
-          id: presentation._id,
-          title: presentation.title,
-          slideCount: presentation.slideCount,
-          createdAt: presentation.createdAt,
-        },
-        downloadUrl: `/uploads/${filename}`,
-      });
+      throw error;
     }
   } catch (error: any) {
-    console.error("Generation error:", error);
+    console.error("❌ Error:", error.message);
     res.status(500).json({
-      message: "Failed to generate presentation",
+      message: "Failed to export presentation",
       error: error.message,
     });
   }

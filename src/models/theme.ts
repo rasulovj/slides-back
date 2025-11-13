@@ -1,81 +1,103 @@
-// src/models/Theme.ts
-import mongoose, { Document, Schema } from "mongoose";
+// src/models/theme.ts
+import mongoose, { Schema, Document } from "mongoose";
 
-export interface ITheme extends Document {
-  name: string;
-  slug: string;
-  description: string;
-  colors: {
-    primary: string;
-    secondary: string;
-    accent: string;
-    background: string;
-    text: string;
-    textLight: string;
-    gradient?: string[];
+interface FontConfig {
+  family: string;
+  weight?: {
+    bold?: string;
+    regular?: string;
   };
-  fonts: {
-    heading: string;
-    body: string;
-  };
-  layouts: {
-    titleSlide: string;
-    contentSlide: string;
-    imageSlide: string;
-  };
-  preview: string;
-  isPremium: boolean;
-  category: string;
 }
 
-const themeSchema = new Schema<ITheme>(
+interface ThemeColors {
+  primary: string;
+  secondary: string;
+  accent: string;
+  background: string;
+  textDark: string;
+  textLight: string;
+}
+
+interface ThemeConfig {
+  colors: ThemeColors;
+  fonts: {
+    heading: FontConfig;
+    body: FontConfig;
+  };
+}
+
+interface LayoutFunction {
+  name: string;
+  // Store the layout logic as a string that we'll execute with Function()
+  // Or store individual shape/text instructions
+}
+
+interface ITheme extends Document {
+  id: string; // "executive", "minimal", etc
+  name: string; // "Executive Corporate Theme"
+  description?: string;
+  isPremium: boolean;
+  config: ThemeConfig;
+  layouts: {
+    [key: string]: any; // title, content, twoColumn, etc
+  };
+  previewImageUrl?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const ThemeSchema = new Schema<ITheme>(
   {
+    id: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+    },
     name: {
       type: String,
       required: true,
-      unique: true,
     },
-    slug: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    description: {
-      type: String,
-    },
-    colors: {
-      primary: { type: String, required: true },
-      secondary: { type: String, required: true },
-      accent: { type: String, required: true },
-      background: { type: String, required: true },
-      text: { type: String, required: true },
-      textLight: { type: String, required: true },
-    },
-    fonts: {
-      heading: { type: String, default: "Arial" },
-      body: { type: String, default: "Arial" },
-    },
-    layouts: {
-      titleSlide: { type: String, default: "default" },
-      contentSlide: { type: String, default: "default" },
-      imageSlide: { type: String, default: "default" },
-    },
-    preview: {
-      type: String,
-      required: true,
-    },
+    description: String,
     isPremium: {
       type: Boolean,
       default: false,
     },
-    category: {
-      type: String,
-      enum: ["professional", "creative", "minimal", "bold"],
+    config: {
+      colors: {
+        primary: { type: String, required: true },
+        secondary: { type: String, required: true },
+        accent: { type: String, required: true },
+        background: { type: String, required: true },
+        textDark: { type: String, required: true },
+        textLight: { type: String, required: true },
+      },
+      fonts: {
+        heading: {
+          family: { type: String, required: true },
+          weight: {
+            bold: String,
+            regular: String,
+          },
+        },
+        body: {
+          family: { type: String, required: true },
+          weight: {
+            bold: String,
+            regular: String,
+          },
+        },
+      },
     },
+    layouts: {
+      type: Schema.Types.Mixed, // Store layout instructions
+      default: {},
+    },
+    previewImageUrl: String,
   },
   {
     timestamps: true,
   }
 );
 
-export default mongoose.model<ITheme>("Theme", themeSchema);
+export default mongoose.model<ITheme>("Theme", ThemeSchema);

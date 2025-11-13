@@ -8,33 +8,28 @@ export interface SlideData {
   id: string;
   type:
     | "title"
+    | "plan"
     | "content"
-    | "stats"
-    | "timeline"
-    | "chart"
-    | "closing"
     | "twoColumn"
-    | "quote";
+    | "timeline"
+    | "comparison"
+    | "cards"
+    | "stats"
+    | "chart"
+    | "quote"
+    | "closing";
   title: string;
   subtitle?: string;
   content: string[];
-  layout?: "default" | "image-left" | "image-right" | "centered" | "split";
+  layout?: "default" | "centered" | "split";
   stats?: {
     label: string;
     value: string;
     description: string;
     icon?: string;
   }[];
-  chartData?: {
-    label: string;
-    value: number;
-    color?: string;
-  }[];
-  quote?: {
-    text: string;
-    author: string;
-  };
-  imagePrompt?: string;
+  chartData?: { label: string; value: number; color?: string }[];
+  quote?: { text: string; author: string };
   notes?: string;
 }
 
@@ -50,101 +45,120 @@ export interface PresentationStructure {
 }
 
 export class AIService {
+  // ✅ Define slide type plan dynamically
+  private getSlideTypePlan(slideCount: number): string[] {
+    if (slideCount <= 5) {
+      return ["title", "plan", "content", "twoColumn", "closing"];
+    }
+    if (slideCount <= 10) {
+      return [
+        "title",
+        "plan",
+        "content",
+        "twoColumn",
+        "timeline",
+        "comparison",
+        "cards",
+        "stats",
+        "chart",
+        "closing",
+      ];
+    }
+    const basePlan = [
+      "title",
+      "plan",
+      "content",
+      "twoColumn",
+      "timeline",
+      "comparison",
+      "cards",
+      "stats",
+      "chart",
+      "closing",
+    ];
+    const extra = Array.from({ length: slideCount - 10 }, (_, i) =>
+      i % 2 === 0 ? "content" : "twoColumn"
+    );
+    return [...basePlan.slice(0, -1), ...extra, "closing"];
+  }
+
   async generatePresentationStructure(
     topic: string,
     language: string,
     slideCount: number
   ): Promise<PresentationStructure> {
     slideCount = Math.max(5, Math.min(slideCount, 25));
-
-    const densityInstruction =
-      slideCount <= 10
-        ? "Each slide must include 4–8 detailed bullet points (max 15 words each)."
-        : "Each slide must include 2–5 concise bullet points (max 8 words each).";
-
-    const structureGuide = `
-Follow this structure strictly:
-1. Title slide (always first)
-2. 2–4 informative content slides
-3. 1–2 stats, timeline, or chart slides if relevant
-4. 1 quote or inspirational slide (optional)
-5. Closing slide (always last)
-`;
+    const plan = this.getSlideTypePlan(slideCount);
 
     const prompt = `
-You are an expert AI presentation planner and content creator.
+You are an expert presentation designer and content creator.
+Your task: Generate a presentation structure about "${topic}" in ${language}.
 
-Task: Create an engaging, informative presentation about "${topic}" in ${language} language.
+Use exactly these slide types in order:
+${plan.map((t, i) => `${i + 1}. ${t}`).join("\n")}
 
-Target slide count: ${slideCount}
-
-${densityInstruction}
-
-${structureGuide}
+### Slide Type Guidelines:
+- title → main topic & subtitle
+- plan → outline or agenda
+- content → deep explanation of one subtopic
+- twoColumn → split comparison or pros/cons
+- timeline → chronological evolution of topic
+- comparison → compare related ideas, industries, or cases
+- cards → 3–5 highlight points or ideas
+- stats → key statistics (each with label, value, description)
+- chart → simple bar or pie chart data
+- quote → motivational or insightful quote
+- closing → thank you / conclusion
 
 Rules:
-- Avoid generic titles like "Introduction" or "Overview" — make each slide specific.
-- Each slide should be informative and standalone.
-- Prefer educational or insightful bullet points.
-- Ensure logical flow across slides.
-- Response must be valid JSON only (no markdown or explanations).
+- Use clear, concise, professional language.
+- Avoid generic text; make each slide unique and connected.
+- Each slide must have a "title" and "content" (array).
+- Return a valid JSON object only (no markdown, no explanations).
 
-Example JSON:
+Example output JSON:
 {
-  "title": "Main Presentation Title",
-  "subtitle": "Engaging tagline or theme",
-  "plan": [
-    "Introduction",
-    "Key insights",
-    "Trends",
-    "Inspiration",
-    "Closing"
-  ],
+  "title": "AI in Modern Education",
+  "subtitle": "Revolutionizing Learning Through Technology",
+  "plan": ["Intro", "Plan", "Trends", "Stats", "Closing"],
   "slides": [
     {
       "type": "title",
-      "title": "Welcome to the Future of AI",
-      "subtitle": "How artificial intelligence transforms our world",
+      "title": "AI in Education",
+      "subtitle": "How AI is reshaping classrooms",
       "content": []
     },
     {
-      "type": "content",
-      "title": "What is AI?",
-      "content": ["Definition of AI", "Brief history", "Applications today"],
-      "layout": "default"
-    },
-    {
-      "type": "closing",
-      "title": "Thank You",
-      "content": ["Questions?", "Let's discuss your ideas"]
+      "type": "plan",
+      "title": "Presentation Roadmap",
+      "content": ["Overview of AI in education", "Key statistics", "Case studies", "Future trends"]
     }
   ],
   "metadata": {
     "topic": "${topic}",
     "language": "${language}"
   }
-}`;
+}
+`;
 
     try {
       const response = await genAI.models.generateContent({
         model: "gemini-2.0-flash",
         contents: prompt,
-        config: {
-          temperature: 0.7,
-        },
+        config: { temperature: 0.7 },
       });
 
       const text = response.text ?? "";
-
-      let cleanedText = text.replace(/```(?:json)?/g, "").trim();
+      const cleanedText = text.replace(/```(?:json)?/g, "").trim();
       const start = cleanedText.indexOf("{");
       const end = cleanedText.lastIndexOf("}");
       if (start === -1 || end === -1) {
         throw new Error("Invalid JSON structure in AI response");
       }
 
-      const jsonString = cleanedText.slice(start, end + 1);
-      const parsed = JSON.parse(jsonString) as PresentationStructure;
+      const parsed = JSON.parse(
+        cleanedText.slice(start, end + 1)
+      ) as PresentationStructure;
 
       if (!Array.isArray(parsed.slides)) {
         throw new Error("Missing slides array in AI output");
@@ -155,9 +169,21 @@ Example JSON:
         .map((slide, index) => ({
           ...slide,
           id: `slide-${Date.now()}-${index}`,
+          content: (slide.content || []).map((item: any) => {
+            if (typeof item === "string") {
+              try {
+                const parsedItem = JSON.parse(item);
+                return parsedItem;
+              } catch {
+                return item;
+              }
+            }
+            return item;
+          }),
         }));
 
-      // ✅ Validate minimal fields
+      parsed.plan = plan;
+
       if (!parsed.title || !parsed.metadata) {
         parsed.title = topic;
         parsed.metadata = { topic, language };
@@ -175,38 +201,26 @@ Example JSON:
     language: string,
     slideCount: number
   ): PresentationStructure {
+    const plan = this.getSlideTypePlan(slideCount);
     return {
       title: topic,
       subtitle: "A Professional Presentation",
-      slides: [
-        {
-          id: "slide-1",
-          type: "title",
-          title: topic,
-          subtitle: "An Overview",
-          content: [],
-        },
-        {
-          id: "slide-2",
-          type: "content",
-          title: "Introduction",
-          content: [
-            "Welcome to this presentation",
-            "Overview of key topics",
-            "What you'll learn today",
-          ],
-        },
-        {
-          id: "slide-3",
-          type: "closing",
-          title: "Thank You",
-          content: ["Questions?"],
-        },
-      ],
-      metadata: {
-        topic,
-        language,
-      },
+      plan,
+      slides: plan.map((type, i) => ({
+        id: `fallback-${i}`,
+        type: type as SlideData["type"],
+        title:
+          type === "title"
+            ? topic
+            : type === "closing"
+            ? "Thank You"
+            : `${type.charAt(0).toUpperCase() + type.slice(1)} Slide`,
+        content: [
+          "This is placeholder content.",
+          "The AI could not generate full details.",
+        ],
+      })),
+      metadata: { topic, language },
     };
   }
 }

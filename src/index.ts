@@ -14,8 +14,6 @@ import userRoute from "./routes/userRoute.js";
 import Theme from "./models/theme.js";
 import { seedThemes } from "./seeds/seedThemes.js";
 import draftRoutes from "./routes/draftRoute.js";
-import { protect } from "./middlewares/auth.js";
-import { generateFromDraft } from "./controllers/presentationController.js";
 
 dotenv.config();
 
@@ -71,11 +69,6 @@ const startServer = async () => {
     app.use("/api/presentations", presentationRoutes);
     app.use("/api/users", userRoute);
     app.use("/api/drafts", draftRoutes);
-    app.post(
-      "/api/presentations/from-draft/:draftId",
-      protect,
-      generateFromDraft
-    );
 
     app.get("/health", (req, res) => {
       res.status(200).json({ status: "OK", message: "Server is running" });

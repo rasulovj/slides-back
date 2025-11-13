@@ -1,23 +1,24 @@
-// src/models/PresentationDraft.ts
 import mongoose, { Document, Schema, Types } from "mongoose";
 
 export interface ISlide {
   id: string;
   type:
     | "title"
+    | "plan"
     | "content"
-    | "stats"
-    | "timeline"
-    | "chart"
     | "twoColumn"
+    | "timeline"
+    | "comparison"
+    | "cards"
+    | "stats"
+    | "chart"
     | "quote"
-    | "closing"
-    | "image";
+    | "closing";
   title: string;
   subtitle?: string;
   content: string[];
   position: number;
-  layout?: "default" | "image-left" | "image-right" | "centered" | "split";
+  layout?: "default" | "centered" | "split";
   backgroundColor?: string;
   textColor?: string;
   stats?: {
@@ -35,8 +36,6 @@ export interface ISlide {
     text: string;
     author: string;
   };
-  imageUrl?: string;
-  imagePrompt?: string;
   notes?: string;
 }
 
@@ -48,6 +47,7 @@ export interface IPresentationDraft extends Document {
   language: string;
   themeSlug: string;
   slides: ISlide[];
+  slidePlan?: string[]; // 👈 new: stores sequence of slide types used (e.g. ["title", "plan", ...])
   thumbnail?: string;
   status: "draft" | "generating" | "completed";
   lastEditedAt: Date;
@@ -66,14 +66,16 @@ const slideSchema = new Schema<ISlide>(
       type: String,
       enum: [
         "title",
+        "plan",
         "content",
-        "stats",
-        "timeline",
-        "chart",
         "twoColumn",
+        "timeline",
+        "comparison",
+        "cards",
+        "stats",
+        "chart",
         "quote",
         "closing",
-        "image",
       ],
       required: true,
     },
@@ -93,7 +95,7 @@ const slideSchema = new Schema<ISlide>(
     },
     layout: {
       type: String,
-      enum: ["default", "image-left", "image-right", "centered", "split"],
+      enum: ["default", "centered", "split"],
       default: "default",
     },
     backgroundColor: String,
@@ -117,8 +119,6 @@ const slideSchema = new Schema<ISlide>(
       text: String,
       author: String,
     },
-    imageUrl: String,
-    imagePrompt: String,
     notes: String,
   },
   { _id: false }
@@ -160,6 +160,10 @@ const presentationDraftSchema = new Schema<IPresentationDraft>(
       type: [slideSchema],
       default: [],
     },
+    slidePlan: {
+      type: [String], // e.g. ["title", "plan", "content", "closing"]
+      default: [],
+    },
     status: {
       type: String,
       enum: ["draft", "generating", "completed"],
@@ -170,7 +174,6 @@ const presentationDraftSchema = new Schema<IPresentationDraft>(
       default: null,
       sparse: true,
     },
-
     lastEditedAt: {
       type: Date,
       default: Date.now,
