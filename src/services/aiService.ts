@@ -9,7 +9,7 @@ export interface SlideData {
   type:
     | "title"
     | "plan"
-    | "default"
+    | "content"
     | "twoColumn"
     | "timeline"
     | "comparison"
@@ -51,7 +51,7 @@ export class AIService {
       return [
         "title",
         "plan",
-        "default",
+        "content",
         "twoColumn",
         "timeline",
         "comparison",
@@ -63,7 +63,7 @@ export class AIService {
     const basePlan = [
       "title",
       "plan",
-      "default",
+      "content",
       "twoColumn",
       "timeline",
       "comparison",
@@ -72,7 +72,7 @@ export class AIService {
       "closing",
     ];
     const extra = Array.from({ length: slideCount - 10 }, (_, i) =>
-      i % 2 === 0 ? "default" : "twoColumn"
+      i % 2 === 0 ? "content" : "twoColumn"
     );
     return [...basePlan.slice(0, -1), ...extra, "closing"];
   }
@@ -95,7 +95,7 @@ ${plan.map((t, i) => `${i + 1}. ${t}`).join("\n")}
 ### Slide Type Guidelines:
 - title → main topic & subtitle
 - plan → outline or agenda (no more than 6 agenda)
-- default → deep explanation of one subtopic
+- content → deep explanation of one subtopic
 - twoColumn → split comparison or pros/cons
 - timeline → chronological evolution of topic
 - comparison → compare related ideas, industries, or cases
