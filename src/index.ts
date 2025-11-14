@@ -11,10 +11,9 @@ import authRoutes from "./routes/authRoutes.js";
 import themeRoutes from "./routes/themeRouter.js";
 import presentationRoutes from "./routes/presentationRoute.js";
 import userRoute from "./routes/userRoute.js";
-import Theme from "./models/theme.js";
-import { seedThemes } from "./seeds/seedThemes.js";
 import draftRoutes from "./routes/draftRoute.js";
 import converRoute from "./routes/converRoute.js";
+import googleRoute from "./routes/auth.js";
 
 dotenv.config();
 
@@ -52,16 +51,6 @@ const startServer = async () => {
   try {
     await connectDb();
 
-    const count = await Theme.countDocuments();
-    if (count === 0) {
-      console.log("🌱 Seeding themes..");
-      await seedThemes();
-    } else {
-      console.log("🧹 Clearing old themes...");
-      await Theme.deleteMany({});
-      console.log("🌱 Reseeding themes...");
-      await seedThemes();
-    }
     console.log(
       `Memory used: ${(process.memoryUsage().rss / 1024 / 1024).toFixed(2)} MB`
     );
@@ -72,6 +61,7 @@ const startServer = async () => {
     app.use("/api/users", userRoute);
     app.use("/api/drafts", draftRoutes);
     app.use("/api/export", converRoute);
+    app.use("/api/auth/", googleRoute);
 
     app.get("/health", (req, res) => {
       res.status(200).json({ status: "OK", message: "Server is running" });

@@ -7,11 +7,9 @@ export interface ISlide {
     | "plan"
     | "content"
     | "twoColumn"
-    | "timeline"
     | "comparison"
     | "cards"
     | "stats"
-    // | "chart"
     | "quote"
     | "closing";
   title: string;
@@ -69,7 +67,6 @@ const slideSchema = new Schema<ISlide>(
         "plan",
         "content",
         "twoColumn",
-        "timeline",
         "comparison",
         "cards",
         "stats",

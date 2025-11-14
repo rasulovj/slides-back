@@ -31,9 +31,7 @@ const userSchema = new Schema<IUser>(
     },
     password: {
       type: String,
-      required: function (this: IUser): boolean {
-        return !this.telegramId;
-      },
+      required: false,
     },
     telegramId: {
       type: String,

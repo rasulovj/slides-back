@@ -64,6 +64,7 @@ const verifyRefreshToken = (token: string): JwtPayload => {
 export default {
   generateTokens,
   generateAccessToken,
+  generateRefreshToken,
   verifyAccessToken,
   verifyRefreshToken,
 };

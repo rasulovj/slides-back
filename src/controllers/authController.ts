@@ -93,24 +93,20 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export const refreshToken = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const refreshToken = async (req: Request, res: Response) => {
   try {
-    const { refreshToken } = req.body;
+    const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {
-      res.status(401).json({ message: "Refresh token required" });
-      return;
+      return res.status(401).json({ message: "Refresh token required" });
     }
 
     const decoded = tokenService.verifyRefreshToken(refreshToken);
 
     const user = await User.findById(decoded.id);
+
     if (!user || !user.refreshTokens.includes(refreshToken)) {
-      res.status(403).json({ message: "Invalid refresh token" });
-      return;
+      return res.status(403).json({ message: "Invalid refresh token" });
     }
 
     const newAccessToken = tokenService.generateAccessToken({
@@ -119,12 +115,14 @@ export const refreshToken = async (
       isPremium: user.isPremium,
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       accessToken: newAccessToken,
     });
   } catch (error) {
-    res.status(403).json({ message: "Invalid or expired refresh token" });
+    return res
+      .status(403)
+      .json({ message: "Invalid or expired refresh token" });
   }
 };
 

@@ -11,7 +11,6 @@ export interface SlideData {
     | "plan"
     | "content"
     | "twoColumn"
-    | "timeline"
     | "comparison"
     | "cards"
     | "stats"
@@ -53,7 +52,6 @@ export class AIService {
         "plan",
         "content",
         "twoColumn",
-        "timeline",
         "comparison",
         "cards",
         "stats",
@@ -65,7 +63,6 @@ export class AIService {
       "plan",
       "content",
       "twoColumn",
-      "timeline",
       "comparison",
       "cards",
       "stats",
@@ -95,11 +92,34 @@ ${plan.map((t, i) => `${i + 1}. ${t}`).join("\n")}
 ### Slide Type Guidelines:
 - title → main topic & subtitle
 - plan → outline or agenda (no more than 6 agenda)
-- content → deep explanation of one subtopic
-- twoColumn → split comparison or pros/cons
-- timeline → chronological evolution of topic
-- comparison → compare related ideas, industries, or cases
-- cards → 3–5 highlight points or ideas
+- content → must contain EXACTLY 2 items.
+  Each item MUST be a coherent paragraph with AT LEAST 60 words.
+  Do NOT include lists, bullets, or short descriptions. 
+  Each item should be a full, self-contained explanation of the slide’s subtopic.
+  Each paragraph should be different and not repetitive,
+- twoColumn → MUST return exactly 4 content items in this order:
+  1. Left column title (short)
+  2. Left column description (40–60 words)
+  3. Right column title (short)
+  4. Right column description (40–60 words)
+
+  NEVER return JSON objects or markdown like **text**.
+  ALWAYS return clean plain text strings.
+  DO NOT return lists or bullet points.
+  Titles must be short, descriptions must be longer.
+  Should return data always, dont return empty in in its content
+- comparison → MUST return EXACTLY 4 content items in this order:
+  1. Short title for item A (3–6 words, ONLY the title, no description)
+  2. Long description for item A (40–60 words, detailed, complete sentence)
+  3. Short title for item B (3–6 words, ONLY the title, no description)
+  4. Long description for item B (40–60 words, detailed, complete sentence)
+
+  DO NOT combine title and description into a single string.
+  DO NOT include colon ":" format like "Title: description".
+  DO NOT return markdown like **bold** or lists.
+  Titles MUST be short.
+  Descriptions MUST be long paragraphs.
+- cards → 6 highlight points or ideas
 - stats → key statistics (each with label, value, description)
 - quote → motivational or insightful quote
 - closing → thank you / conclusion
@@ -126,6 +146,11 @@ Example output JSON:
       "type": "plan",
       "title": "Presentation Roadmap",
       "content": ["Overview of AI in education", "Key statistics", "Case studies", "Future trends"]
+    },
+    {
+      "type": "content",
+      "title": "Here title of subtopic or something in plan",
+      "content": ["Here a long description -- about 60 words","Here second one of description -- about 60 words"]
     }
   ],
   "metadata": {
@@ -163,17 +188,50 @@ Example output JSON:
         .map((slide, index) => ({
           ...slide,
           id: `slide-${Date.now()}-${index}`,
-          content: (slide.content || []).map((item: any) => {
-            if (typeof item === "string") {
-              try {
-                const parsedItem = JSON.parse(item);
-                return parsedItem;
-              } catch {
-                return item;
-              }
+          content: (() => {
+            let raw = slide.content;
+
+            if (!Array.isArray(raw)) {
+              if (raw == null) raw = [];
+              else raw = [raw];
             }
-            return item;
-          }),
+
+            const processed: string[] = [];
+
+            raw.forEach((item: any) => {
+              if (typeof item === "string") {
+                try {
+                  const parsed = JSON.parse(item);
+
+                  // Flatten known fields
+                  if (parsed.title) processed.push(parsed.title);
+                  if (parsed.description) processed.push(parsed.description);
+                  if (parsed.label) processed.push(parsed.label);
+                  if (parsed.value) processed.push(parsed.value);
+                  if (parsed.year) processed.push(parsed.year);
+
+                  return;
+                } catch {
+                  processed.push(item);
+                  return;
+                }
+              }
+
+              if (typeof item === "object" && item !== null) {
+                if (item.title) processed.push(item.title);
+                if (item.description) processed.push(item.description);
+                if (item.label) processed.push(item.label);
+                if (item.value) processed.push(item.value);
+                if (item.year) processed.push(item.year);
+
+                return;
+              }
+
+              processed.push(String(item));
+            });
+
+            return processed;
+          })(),
         }));
 
       parsed.plan = plan;
