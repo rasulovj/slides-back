@@ -1,4 +1,4 @@
-import express from "express";
+import express, { RequestHandler } from "express";
 import {
   register,
   login,
@@ -13,7 +13,6 @@ const router = express.Router();
 router.post("/register", register);
 router.post("/login", login);
 router.post("/refresh", refreshToken);
-router.post("/logout", protect, logout);
-router.post("/logout-all", protect, logoutAll);
+router.post("/logout", protect as RequestHandler, logout as RequestHandler);
 
 export default router;

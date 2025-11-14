@@ -1,4 +1,4 @@
-import express from "express";
+import express, { RequestHandler } from "express";
 import {
   createDraft,
   getUserDrafts,
@@ -16,19 +16,19 @@ import { protect } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-router.use(protect);
+router.use(protect as RequestHandler);
 
-router.post("/", createDraft);
-router.get("/", getUserDrafts);
-router.get("/:id", getDraftById);
-router.put("/:id", updateDraft);
-router.delete("/:id", deleteDraft);
-router.post("/:id/duplicate", duplicateDraft);
-router.put("/:id/thumbnail", updateDraftThumbnail);
+router.post("/", createDraft as RequestHandler);
+router.get("/", getUserDrafts as RequestHandler);
+router.get("/:id", getDraftById as RequestHandler);
+router.put("/:id", updateDraft as RequestHandler);
+router.delete("/:id", deleteDraft as RequestHandler);
+router.post("/:id/duplicate", duplicateDraft as RequestHandler);
+router.put("/:id/thumbnail", updateDraftThumbnail as RequestHandler);
 
-router.put("/:id/slides/:slideId", updateSlide);
-router.post("/:id/slides", addSlide);
-router.delete("/:id/slides/:slideId", deleteSlide);
-router.put("/:id/slides/reorder", reorderSlides);
+router.put("/:id/slides/:slideId", updateSlide as RequestHandler);
+router.post("/:id/slides", addSlide as RequestHandler);
+router.delete("/:id/slides/:slideId", deleteSlide as RequestHandler);
+router.put("/:id/slides/reorder", reorderSlides as RequestHandler);
 
 export default router;
